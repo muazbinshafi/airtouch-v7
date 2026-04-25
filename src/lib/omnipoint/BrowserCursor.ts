@@ -868,7 +868,72 @@ export class BrowserCursor {
     this.ring.style.transform = `translate3d(0,0,0) scale(${scale})`;
   }
 
-  private loop = () => {
+  /**
+   * Render the live MediaPipe hand skeleton centered on the cursor.
+   * Landmark 8 (index fingertip) is anchored at the cursor origin so the
+   * "tip" of the user's index finger always points at the click location.
+   * Auto-scaled by wrist→index-MCP so on-screen size is camera-distance
+   * independent.
+   */
+  private updateHandSkeleton(snap: ReturnType<typeof TelemetryStore.get>) {
+    const lm = snap.landmarks;
+    if (!snap.handPresent || lm.length < 21) {
+      this.hand.style.opacity = "0";
+      return;
+    }
+    const refDx = lm[5].x - lm[0].x;
+    const refDy = lm[5].y - lm[0].y;
+    const refLen = Math.hypot(refDx, refDy) || 0.001;
+    const TARGET_PX = 70;
+    const scale = TARGET_PX / refLen;
+
+    const ax = lm[8].x;
+    const ay = lm[8].y;
+    const pts = lm.map((p) => ({
+      x: (p.x - ax) * scale,
+      y: (p.y - ay) * scale,
+    }));
+
+    for (let i = 0; i < this._handConnections.length; i++) {
+      const [a, b] = this._handConnections[i];
+      const line = this.handBones[i];
+      line.setAttribute("x1", pts[a].x.toFixed(2));
+      line.setAttribute("y1", pts[a].y.toFixed(2));
+      line.setAttribute("x2", pts[b].x.toFixed(2));
+      line.setAttribute("y2", pts[b].y.toFixed(2));
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = this.handJoints[i];
+      c.setAttribute("cx", pts[i].x.toFixed(2));
+      c.setAttribute("cy", pts[i].y.toFixed(2));
+    }
+
+    const pinch = snap.pinchDistance;
+    const closing = pinch > 0 && pinch < 0.85;
+    if (this.handIndexTip) {
+      this.handIndexTip.setAttribute("r", closing ? "5.5" : "4.5");
+      this.handIndexTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
+    }
+    if (this.handThumbTip) {
+      this.handThumbTip.setAttribute("r", closing ? "5" : "4");
+      this.handThumbTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
+    }
+    const ext = snap.fingersExtended;
+    const fingerBoneRanges: [number, number, number][] = [
+      [0, 3, 0], [4, 7, 1], [8, 11, 2], [12, 15, 3], [16, 19, 4],
+    ];
+    for (const [s, e, fIdx] of fingerBoneRanges) {
+      const active = ext[fIdx];
+      for (let i = s; i <= e; i++) {
+        this.handBones[i].setAttribute("stroke-opacity", active ? "1" : "0.35");
+      }
+    }
+    this.handBones[20].setAttribute("stroke-opacity", "0.85");
+
+    this.hand.style.opacity = "1";
+  }
+
+
     this.rafId = requestAnimationFrame(this.loop);
     if (this.mode === "off") return;
     const snap = TelemetryStore.get();
