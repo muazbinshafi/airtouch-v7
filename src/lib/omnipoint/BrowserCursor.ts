@@ -933,7 +933,7 @@ export class BrowserCursor {
     this.hand.style.opacity = "1";
   }
 
-
+  private loop = () => {
     this.rafId = requestAnimationFrame(this.loop);
     if (this.mode === "off") return;
     const snap = TelemetryStore.get();
