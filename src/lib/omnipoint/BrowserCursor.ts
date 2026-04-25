@@ -557,7 +557,6 @@ export class BrowserCursor {
     }
     this.lastDrawPt = { x, y };
     this.resetCtx();
-    void this.accentColor;
   }
 
   private drawShapePreview(x: number, y: number) {
