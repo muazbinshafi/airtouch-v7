@@ -824,7 +824,8 @@ export class BrowserCursor {
       // version used the normalized pinch ratio as a fallback; keep that
       // behavior so drawing still works when the engine commits a brief
       // non-drawing gesture between click/drag frames.
-      const isPinching = snap.pinchDistance > 0 && snap.pinchDistance < 0.55;
+      const settings = GestureSettingsStore.get();
+      const isPinching = snap.pinchDistance > 0 && snap.pinchDistance < settings.drawPinchThreshold;
       const isDrawing = g === "click" || g === "drag" || isPinching;
       const tool = PaintStore.get().tool;
       const isShape = PaintStore.isShape(tool);
