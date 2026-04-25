@@ -1270,14 +1270,17 @@ export class BrowserCursor {
         break;
       case "switch_pointer":
         this.setMode("pointer");
+        window.dispatchEvent(new CustomEvent("omnipoint:cursor-mode", { detail: "pointer" }));
         this.setLabel("POINTER");
         break;
       case "switch_draw":
         this.setMode("draw");
+        window.dispatchEvent(new CustomEvent("omnipoint:cursor-mode", { detail: "draw" }));
         this.setLabel("DRAW");
         break;
       case "cursor_off":
         this.setMode("off");
+        window.dispatchEvent(new CustomEvent("omnipoint:cursor-mode", { detail: "off" }));
         break;
       case "play_pause":
         this.dispatchKey(" ", 32);
