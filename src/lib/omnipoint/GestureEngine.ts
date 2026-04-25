@@ -25,11 +25,13 @@ export interface EngineConfig {
 export const defaultConfig: EngineConfig = {
   sensitivity: 1.4,
   smoothingAlpha: 1.2,        // One-Euro minCutoff. ~1.2 = balanced smooth+snappy.
-  // pinch is now a *ratio* of hand size (pinchDist / wrist→middleMCP).
-  // Closed pinch ≈ 0.20, comfortable open ≈ 0.9. These ratios are
-  // invariant to camera distance and hand angle.
-  clickThreshold: 0.45,
-  releaseThreshold: 0.62,
+  // pinch is now a *ratio* of hand size (pinchDist / index-MCP→wrist).
+  // index-MCP→wrist is ~70% of middle-MCP→wrist, so the same physical gap
+  // yields a *larger* ratio — making sub-cm pinches far easier to trigger.
+  // Tight closed pinch ≈ 0.25, ~2-3 cm gap ≈ 0.55, fully open ≈ 1.2+.
+  // Default click at 0.62 fires at ~2 cm; release at 0.78 prevents flutter.
+  clickThreshold: 0.62,
+  releaseThreshold: 0.78,
   scrollSensitivity: 14,
   aspectRatio: 16 / 9,
   deadZone: 0.0006,
