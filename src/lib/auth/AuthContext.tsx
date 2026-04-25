@@ -7,6 +7,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useOfflineMode } from "@/lib/offlineMode";
 
 interface AuthContextValue {
   session: Session | null;
@@ -25,8 +26,15 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const offline = useOfflineMode();
 
   useEffect(() => {
+    if (offline) {
+      setSession(null);
+      setLoading(false);
+      return;
+    }
+
     // 1) subscribe FIRST
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
@@ -40,9 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [offline]);
 
   const signOut = async () => {
+    if (offline) {
+      setSession(null);
+      return;
+    }
     await supabase.auth.signOut();
   };
 
