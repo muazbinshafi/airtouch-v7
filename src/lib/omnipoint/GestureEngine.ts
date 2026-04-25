@@ -415,7 +415,29 @@ export class GestureEngine {
 
     let gesture: GestureKind = "none";
 
-    if (isFist) {
+    // Pinch-as-click takes priority over static pose detection. Whenever the
+    // thumb + index tips come within the click threshold, treat it as a click
+    // regardless of whether the other fingers are curled (which would
+    // otherwise be misclassified as "fist") or extended.
+    const isPinchClick = pinch < effClickThreshold && !isThreePinch;
+
+    if (isPinchClick) {
+      // Run the click/drag state machine directly so pinch behaves like a
+      // real mouse button — quick pinch = click, sustained = drag.
+      this.lastScrollY = null;
+      if (this.clickState === "IDLE") {
+        if (this.pinchStartTs === 0) this.pinchStartTs = tNow;
+        if (tNow - this.pinchStartTs >= this.debounceMs) {
+          this.clickState = "CLICK_DOWN";
+          gesture = "click";
+        }
+      } else if (this.clickState === "CLICK_DOWN") {
+        gesture = "drag";
+        this.clickState = "DRAG";
+      } else if (this.clickState === "DRAG") {
+        gesture = "drag";
+      }
+    } else if (isFist) {
       gesture = "fist";
       this.clickState = "IDLE";
       this.lastScrollY = null;
