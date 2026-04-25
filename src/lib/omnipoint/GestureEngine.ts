@@ -405,8 +405,8 @@ export class GestureEngine {
     const isRock = indexExt && pinkyExt && !middleExt && !ringExt;
     const isPhoneCall = thumbExt && pinkyExt && !indexExt && !middleExt && !ringExt;
     const isPointing = indexExt && !middleExt && !ringExt && !pinkyExt;
-    const isThreePinch = pinch < this.config.clickThreshold &&
-                         tmPinch < this.config.clickThreshold * 1.4 &&
+    const isThreePinch = pinch < effClickThreshold &&
+                         tmPinch < effClickThreshold * 1.4 &&
                          indexExt && middleExt;
 
     let gesture: GestureKind = "none";
