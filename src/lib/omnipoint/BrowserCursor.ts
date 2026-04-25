@@ -883,6 +883,9 @@ export class BrowserCursor {
     this.dot.style.top = `${y}px`;
     this.label.style.left = `${x}px`;
     this.label.style.top = `${y}px`;
+    this.hand.style.left = `${x}px`;
+    this.hand.style.top = `${y}px`;
+    this.updateHandSkeleton(snap);
 
     const g = snap.gesture;
     this.setRingState(g);
