@@ -267,6 +267,40 @@ export function GestureSettingsPanel() {
                 value={settings.accuracyBias}
                 onChange={(v) => GestureSettingsStore.patch({ accuracyBias: v })}
               />
+              <Slider
+                label="DRAW PINCH"
+                hint="Lower = stricter pinch to paint. Higher = easier drawing."
+                min={0.25} max={0.85} step={0.01}
+                value={settings.drawPinchThreshold}
+                onChange={(v) => GestureSettingsStore.patch({ drawPinchThreshold: v })}
+              />
+              <Slider
+                label="SCROLL STEP"
+                hint="Pixels moved by each scroll gesture pulse."
+                min={20} max={160} step={5}
+                value={settings.scrollStepPx}
+                onChange={(v) => GestureSettingsStore.patch({ scrollStepPx: v })}
+              />
+              <Slider
+                label="CLICK COOLDOWN"
+                min={100} max={700} step={10}
+                value={settings.clickCooldownMs}
+                onChange={(v) => GestureSettingsStore.patch({ clickCooldownMs: v })}
+                compact
+              />
+              <Slider
+                label="RIGHT CLICK COOLDOWN"
+                min={150} max={900} step={10}
+                value={settings.rightClickCooldownMs}
+                onChange={(v) => GestureSettingsStore.patch({ rightClickCooldownMs: v })}
+                compact
+              />
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <Toggle label="POINTER POSES" checked={settings.enablePointerStaticActions} onChange={(v) => GestureSettingsStore.patch({ enablePointerStaticActions: v })} />
+                <Toggle label="DRAW POSES" checked={settings.enableDrawStaticActions} onChange={(v) => GestureSettingsStore.patch({ enableDrawStaticActions: v })} />
+                <Toggle label="CURSOR LABELS" checked={settings.showCursorLabels} onChange={(v) => GestureSettingsStore.patch({ showCursorLabels: v })} />
+                <Toggle label="INVERT SCROLL" checked={settings.invertScroll} onChange={(v) => GestureSettingsStore.patch({ invertScroll: v })} />
+              </div>
             </section>
 
             <section className="p-4 border-b hairline">
