@@ -781,8 +781,9 @@ export class BrowserCursor {
   }
 
   private setLabel(text: string) {
+    const settings = GestureSettingsStore.get();
     if (this.label.textContent !== text) this.label.textContent = text;
-    this.label.style.opacity = text ? "1" : "0";
+    this.label.style.opacity = text && settings.showCursorLabels ? "1" : "0";
   }
 
   private setRingState(gesture: GestureKind) {
@@ -1096,12 +1097,14 @@ export class BrowserCursor {
       this.dispatchClick(target, x, y);
       this.lastClickAt = now;
       this.setLabel("CLICK");
-    } else if (transitionedTo("right_click") && now - this.lastRightClickAt > 320) {
+    } else if (transitionedTo("right_click") && now - this.lastRightClickAt > GestureSettingsStore.get().rightClickCooldownMs) {
       this.dispatchContextMenu(target, x, y);
       this.lastRightClickAt = now;
       this.setLabel("RIGHT");
     } else if ((g === "scroll_up" || g === "scroll_down") && now - this.lastScrollAt > 16) {
-      const delta = g === "scroll_up" ? -60 : 60;
+      const settings = GestureSettingsStore.get();
+      const baseDelta = g === "scroll_up" ? -settings.scrollStepPx : settings.scrollStepPx;
+      const delta = settings.invertScroll ? -baseDelta : baseDelta;
       this.dispatchWheel(target, x, y, delta);
       this.lastScrollAt = now;
       this.setLabel(g === "scroll_up" ? "SCROLL ↑" : "SCROLL ↓");
@@ -1133,6 +1136,8 @@ export class BrowserCursor {
   ): boolean {
     const now = performance.now();
     const settings = GestureSettingsStore.get();
+    if (surface === "pointer" && !settings.enablePointerStaticActions) return false;
+    if (surface === "draw" && !settings.enableDrawStaticActions) return false;
 
     if (!isConfigurable(g)) {
       this.poseHeld = null;
