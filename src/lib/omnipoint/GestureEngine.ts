@@ -56,15 +56,21 @@ export class GestureEngine {
   private bridge: HIDBridge;
   public config: EngineConfig;
 
-  // One-Euro filters for jitter-free thumb / index landmarks (3D each)
-  private fThumb = new OneEuroFilter2D(1.2, 0.015);
-  private fThumbZ = new OneEuroFilter2D(1.2, 0.015);
-  private fIndex = new OneEuroFilter2D(1.2, 0.015);
-  private fIndexZ = new OneEuroFilter2D(1.2, 0.015);
+  // One-Euro filters for jitter-free thumb / index landmarks (3D each).
+  // Lower minCutoff + higher beta = preserves micro-motion of fingertips
+  // (critical for sub-cm pinch precision) while still killing static jitter.
+  private fThumb = new OneEuroFilter2D(1.6, 0.04);
+  private fThumbZ = new OneEuroFilter2D(1.6, 0.04);
+  private fIndex = new OneEuroFilter2D(1.6, 0.04);
+  private fIndexZ = new OneEuroFilter2D(1.6, 0.04);
   private smoothedThumb: [number, number, number] | null = null;
   private smoothedIndex: [number, number, number] | null = null;
   // Final cursor low-pass (after acceleration). Slightly snappier than landmarks.
   private fCursor = new OneEuroFilter2D(2.0, 0.03);
+  // Pinch ratio history for velocity-based "closing intent" detection.
+  private prevPinch: number | null = null;
+  private prevPinchT = 0;
+  private pinchVelocity = 0;
 
   // Cursor state (smoothed, post-acceleration), normalized to active zone 0..1
   private cursor = { x: 0.5, y: 0.5 };
