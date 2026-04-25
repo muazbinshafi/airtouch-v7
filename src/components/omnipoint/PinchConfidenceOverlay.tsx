@@ -110,7 +110,7 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
   const cfg = GestureSettingsStore.get().engineConfig;
   const click = cfg?.clickThreshold ?? 0.62;
   const release = cfg?.releaseThreshold ?? 0.78;
-  const pinchPct = Math.min(1, live.pinch / 1.5) * 100;
+  const pinchPct = Math.min(1, live.pinch / 2.0) * 100;
   const fired = live.pinch > 0 && live.pinch < click;
 
   return (
