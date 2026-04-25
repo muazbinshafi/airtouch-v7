@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { InitScreen } from "@/components/omnipoint/InitScreen";
 import { StatusBar } from "@/components/omnipoint/StatusBar";
@@ -252,8 +252,7 @@ const Demo = () => {
 
   const showInit = !initialized;
 
-  return useMemo(
-    () => (
+  return (
       <main className="h-[100dvh] w-screen flex flex-col bg-background text-foreground overflow-hidden">
         <h1 className="sr-only">OmniPoint HCI — Live Sensor</h1>
         {!showInit && <StatusBar onEmergencyToggle={handleEmergencyToggle} />}
@@ -404,8 +403,6 @@ const Demo = () => {
           />
         )}
       </main>
-    ),
-    [showInit, status, progress, error, initialize, initializing, config, setConfig, bridgeUrl, handleEmergencyToggle, handleReconnect, handleSetOrigin, handleTestBridge, troubleshooterOpen, calibrationOpen, tourOpen, controlMode, browserCursor.mode, browserCursor.setMode, browserCursor.clearDrawing, browserCursor.undo, browserCursor.redo, browserCursor.saveAsPng],
   );
 };
 
