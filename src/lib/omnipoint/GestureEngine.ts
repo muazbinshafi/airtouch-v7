@@ -440,6 +440,7 @@ export class GestureEngine {
     } else if (isFist) {
       gesture = "fist";
       this.clickState = "IDLE";
+      this.pinchStartTs = 0;
       this.lastScrollY = null;
     } else if (isOpenPalm) {
       gesture = "open_palm";
