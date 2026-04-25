@@ -65,8 +65,8 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
 
     // Threshold bands (click/release)
     const cfg = GestureSettingsStore.get().engineConfig;
-    const click = cfg?.clickThreshold ?? 0.45;
-    const release = cfg?.releaseThreshold ?? 0.62;
+    const click = cfg?.clickThreshold ?? 0.78;
+    const release = cfg?.releaseThreshold ?? 0.78;
     const yClick = h - (click / MAX) * h;
     const yRelease = h - (release / MAX) * h;
 
@@ -108,8 +108,8 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
   if (!visible) return null;
 
   const cfg = GestureSettingsStore.get().engineConfig;
-  const click = cfg?.clickThreshold ?? 0.45;
-  const release = cfg?.releaseThreshold ?? 0.62;
+  const click = cfg?.clickThreshold ?? 0.78;
+  const release = cfg?.releaseThreshold ?? 0.78;
   const pinchPct = Math.min(1, live.pinch / 1.5) * 100;
   const fired = live.pinch > 0 && live.pinch < click;
 
