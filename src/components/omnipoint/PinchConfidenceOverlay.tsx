@@ -65,7 +65,7 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
 
     // Threshold bands (click/release)
     const cfg = GestureSettingsStore.get().engineConfig;
-    const click = cfg?.clickThreshold ?? 0.78;
+    const click = cfg?.clickThreshold ?? 0.62;
     const release = cfg?.releaseThreshold ?? 0.78;
     const yClick = h - (click / MAX) * h;
     const yRelease = h - (release / MAX) * h;
