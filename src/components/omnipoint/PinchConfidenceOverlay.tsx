@@ -58,15 +58,15 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
     }
     ctx.globalAlpha = 1;
 
-    // Pinch is normalized roughly 0..1.5+. Clamp to 0..1.5 for display.
-    const MAX = 1.5;
+    // Pinch ratio range expanded to 0..2.0 to fit new index-MCP-based scale.
+    const MAX = 2.0;
     const samples = samplesRef.current;
     const xStep = w / Math.max(60, samples.length);
 
     // Threshold bands (click/release)
     const cfg = GestureSettingsStore.get().engineConfig;
-    const click = cfg?.clickThreshold ?? 0.45;
-    const release = cfg?.releaseThreshold ?? 0.62;
+    const click = cfg?.clickThreshold ?? 0.62;
+    const release = cfg?.releaseThreshold ?? 0.78;
     const yClick = h - (click / MAX) * h;
     const yRelease = h - (release / MAX) * h;
 
@@ -108,9 +108,9 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
   if (!visible) return null;
 
   const cfg = GestureSettingsStore.get().engineConfig;
-  const click = cfg?.clickThreshold ?? 0.45;
-  const release = cfg?.releaseThreshold ?? 0.62;
-  const pinchPct = Math.min(1, live.pinch / 1.5) * 100;
+  const click = cfg?.clickThreshold ?? 0.62;
+  const release = cfg?.releaseThreshold ?? 0.78;
+  const pinchPct = Math.min(1, live.pinch / 2.0) * 100;
   const fired = live.pinch > 0 && live.pinch < click;
 
   return (
