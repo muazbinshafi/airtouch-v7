@@ -27,6 +27,17 @@ export function useBrowserCursor(active: boolean, initialMode: CursorMode = "poi
     ref.current?.setMode(mode);
   }, [mode]);
 
+  useEffect(() => {
+    const onMode = (event: Event) => {
+      const next = (event as CustomEvent<CursorMode>).detail;
+      if (next === "off" || next === "pointer" || next === "draw") {
+        setModeState(next);
+      }
+    };
+    window.addEventListener("omnipoint:cursor-mode", onMode);
+    return () => window.removeEventListener("omnipoint:cursor-mode", onMode);
+  }, []);
+
   const setMode = useCallback((m: CursorMode) => setModeState(m), []);
   const clearDrawing = useCallback(() => ref.current?.clearDrawing(), []);
   const undo = useCallback(() => ref.current?.undo(), []);
