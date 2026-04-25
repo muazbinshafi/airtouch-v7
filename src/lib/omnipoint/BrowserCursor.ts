@@ -884,7 +884,7 @@ export class BrowserCursor {
     const refDx = lm[5].x - lm[0].x;
     const refDy = lm[5].y - lm[0].y;
     const refLen = Math.hypot(refDx, refDy) || 0.001;
-    const TARGET_PX = 70;
+    const TARGET_PX = 160;
     const scale = TARGET_PX / refLen;
 
     const ax = lm[8].x;
