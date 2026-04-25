@@ -478,7 +478,7 @@ export class GestureEngine {
       this.lastScrollY = null;
       // Click / drag state machine with hysteresis + debounce
       if (this.clickState === "IDLE") {
-        if (pinch < this.config.clickThreshold) {
+        if (pinch < effClickThreshold) {
           if (this.pinchStartTs === 0) this.pinchStartTs = tNow;
           if (tNow - this.pinchStartTs >= this.debounceMs) {
             this.clickState = "CLICK_DOWN";
