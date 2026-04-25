@@ -215,6 +215,7 @@ const Auth = () => {
               )}
             </button>
           </form>
+          </fieldset>
 
           <p className="mt-5 text-center text-xs text-muted-foreground">
             By continuing you agree to use the app responsibly.
