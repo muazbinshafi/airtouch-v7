@@ -162,11 +162,74 @@ export class BrowserCursor {
       willChange: "transform, opacity",
     } as CSSStyleDeclaration);
 
+    // Live hand skeleton overlay (replaces the cursor circle visually).
+    // We keep dot/ring nodes for legacy code paths but hide them.
+    this.dot.style.display = "none";
+    this.ring.style.display = "none";
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    this.hand = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
+    this.hand.setAttribute("width", "260");
+    this.hand.setAttribute("height", "260");
+    this.hand.setAttribute("viewBox", "-130 -130 260 260");
+    Object.assign(this.hand.style, {
+      position: "absolute",
+      width: "260px",
+      height: "260px",
+      marginLeft: "-130px",
+      marginTop: "-130px",
+      pointerEvents: "none",
+      overflow: "visible",
+      filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.55))",
+      transition: "opacity 140ms ease-out",
+      opacity: "0",
+      willChange: "transform, opacity",
+    } as CSSStyleDeclaration);
+
+    const HAND_CONNECTIONS: [number, number][] = [
+      [0, 1], [1, 2], [2, 3], [3, 4],
+      [0, 5], [5, 6], [6, 7], [7, 8],
+      [5, 9], [9, 10], [10, 11], [11, 12],
+      [9, 13], [13, 14], [14, 15], [15, 16],
+      [13, 17], [17, 18], [18, 19], [19, 20],
+      [0, 17],
+    ];
+    for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
+      const line = document.createElementNS(SVG_NS, "line") as SVGLineElement;
+      line.setAttribute("stroke", "hsl(var(--primary))");
+      line.setAttribute("stroke-width", "2.5");
+      line.setAttribute("stroke-linecap", "round");
+      this.hand.appendChild(line);
+      this.handBones.push(line);
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = document.createElementNS(SVG_NS, "circle") as SVGCircleElement;
+      c.setAttribute("r", "2.4");
+      c.setAttribute("fill", "hsl(var(--primary))");
+      this.hand.appendChild(c);
+      this.handJoints.push(c);
+    }
+    // Highlight thumb tip (4) and index tip (8)
+    this.handThumbTip = this.handJoints[4];
+    this.handIndexTip = this.handJoints[8];
+    this.handThumbTip.setAttribute("r", "4");
+    this.handThumbTip.setAttribute("fill", "white");
+    this.handThumbTip.setAttribute("stroke", "hsl(var(--primary))");
+    this.handThumbTip.setAttribute("stroke-width", "1.5");
+    this.handIndexTip.setAttribute("r", "4.5");
+    this.handIndexTip.setAttribute("fill", "white");
+    this.handIndexTip.setAttribute("stroke", "hsl(var(--primary))");
+    this.handIndexTip.setAttribute("stroke-width", "2");
+
     this.root.appendChild(this.drawCanvas);
+    this.root.appendChild(this.hand);
     this.root.appendChild(this.ring);
     this.root.appendChild(this.dot);
     this.root.appendChild(this.label);
+    this._handConnections = HAND_CONNECTIONS;
   }
+
+  private _handConnections: [number, number][] = [];
 
   attach() {
     if (!this.root.isConnected) document.body.appendChild(this.root);
