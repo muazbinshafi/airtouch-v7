@@ -224,6 +224,9 @@ export class GestureEngine {
       this.prevIndex = null;
       this.clickState = "IDLE";
       this.lastScrollY = null;
+      this.prevPinch = null;
+      this.prevPinchT = 0;
+      this.pinchVelocity = 0;
       TelemetryStore.set({
         handPresent: false,
         handedness: "none",
