@@ -47,9 +47,6 @@ export class BrowserCursor {
   private lastClickAt = 0;
   private lastRightClickAt = 0;
   private lastScrollAt = 0;
-  private lastBackAt = 0;
-  private lastZoomAt = 0;
-  private lastNextAt = 0;
   private lastDrawPt: DrawSegment | null = null;
   // Shape preview state — when drawing a shape we hold the start anchor
   // and a snapshot of the canvas to redraw the rubber-band on each frame.
@@ -72,7 +69,6 @@ export class BrowserCursor {
   private selectResize: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w" | null = null;
   // Spray throttle.
   private lastSprayAt = 0;
-  private accentColor = "var(--primary)";
 
   // Pose-hold buffer for higher accuracy on static gestures. Tracks the
   // currently-held configurable gesture, when it started, and when it last
