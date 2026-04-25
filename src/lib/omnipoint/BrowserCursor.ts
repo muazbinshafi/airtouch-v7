@@ -48,6 +48,7 @@ export class BrowserCursor {
   private lastRightClickAt = 0;
   private lastScrollAt = 0;
   private lastDrawPt: DrawSegment | null = null;
+  private wasDrawActive = false;
   // Shape preview state — when drawing a shape we hold the start anchor
   // and a snapshot of the canvas to redraw the rubber-band on each frame.
   private shapeStart: DrawSegment | null = null;
@@ -830,7 +831,7 @@ export class BrowserCursor {
 
       if (isFill) {
         // Trigger flood-fill once on the rising edge of pinch / click.
-        const wasDrawing = this.lastGesture === "click" || this.lastGesture === "drag";
+        const wasDrawing = this.wasDrawActive;
         if (isDrawing && !wasDrawing) {
           const snapImg = this.snapshotCanvas();
           if (snapImg) PaintHistory.push(snapImg);
@@ -839,12 +840,12 @@ export class BrowserCursor {
         this.setLabel(isDrawing ? "FILL" : "FILL · CLICK TO POUR");
         this.tryFireStaticGesture(g, snap.confidence, "draw");
         this.lastGesture = g;
+        this.wasDrawActive = isDrawing;
         return;
       }
 
       if (isSpecial) {
-        const wasDrawing =
-          this.lastGesture === "click" || this.lastGesture === "drag";
+        const wasDrawing = this.wasDrawActive;
         const risingEdge = isDrawing && !wasDrawing;
         const fallingEdge = !isDrawing && wasDrawing;
 
