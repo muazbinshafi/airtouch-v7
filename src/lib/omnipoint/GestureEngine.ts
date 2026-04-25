@@ -82,7 +82,7 @@ export class GestureEngine {
   // Click state machine
   private clickState: ClickState = "IDLE";
   private pinchStartTs = 0;
-  private readonly debounceMs = 50;
+  private readonly debounceMs = 25;
 
   // Gesture stability voting — require N consecutive frames of the same
   // candidate gesture before committing. Eliminates 1-frame flickers.
