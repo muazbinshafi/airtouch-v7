@@ -9,6 +9,7 @@ import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useOfflineMode, OfflineModeStore } from "@/lib/offlineMode";
 import { toast } from "@/hooks/use-toast";
+import { GesturePreview } from "@/components/omnipoint/GesturePreview";
 
 type Mode = "signin" | "signup";
 
@@ -86,7 +87,19 @@ const Auth = () => {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-5xl grid lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] gap-8 items-start">
+        <section className="order-2 lg:order-1">
+          <div className="mb-3">
+            <h2 className="font-display text-lg mb-1">Test your camera & gestures</h2>
+            <p className="text-sm text-muted-foreground">
+              Start the preview to see what gesture is detected in real time.
+              Helpful before entering the demo.
+            </p>
+          </div>
+          <GesturePreview />
+        </section>
+
+        <div className="order-1 lg:order-2 w-full max-w-md mx-auto lg:mx-0">
         <div className="flex items-center justify-center gap-2.5 mb-8">
           <div className="w-10 h-10 rounded-lg bg-gradient-primary grid place-items-center shadow-md">
             <Hand className="w-5 h-5 text-white" strokeWidth={2.5} />
