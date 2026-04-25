@@ -19,8 +19,25 @@ export type GestureAction =
   | "zoom_out"
   | "next"
   | "prev"
+  | "home"
+  | "end"
+  | "page_up"
+  | "page_down"
+  | "tab"
+  | "shift_tab"
+  | "copy"
+  | "paste"
+  | "cut"
   | "save"
   | "clear"
+  | "crop_selection"
+  | "commit_selection"
+  | "switch_pointer"
+  | "switch_draw"
+  | "cursor_off"
+  | "play_pause"
+  | "fullscreen"
+  | "screenshot"
   | "escape"
   | "enter"
   | "space"
@@ -35,7 +52,14 @@ export type ConfigurableGesture =
   | "thumbs_up"
   | "pinky_only"
   | "four_fingers"
-  | "fist";
+  | "fist"
+  | "middle_only"
+  | "ring_only"
+  | "two_finger_point"
+  | "three_fingers"
+  | "peace"
+  | "rock"
+  | "phone_call";
 
 export interface GestureBinding {
   /** What this gesture does in pointer mode */
@@ -59,6 +83,22 @@ export interface GestureSettings {
   minConfidence: number;
   /** Global multiplier on holdMs — pull down for snappier, up for stricter */
   accuracyBias: number;
+  /** Pinch ratio fallback used by draw mode when click/drag briefly flickers */
+  drawPinchThreshold: number;
+  /** Pixel step emitted for each scroll gesture frame */
+  scrollStepPx: number;
+  /** Minimum gap between click firings in pointer mode */
+  clickCooldownMs: number;
+  /** Minimum gap between right-click firings in pointer mode */
+  rightClickCooldownMs: number;
+  /** Master enable for static-pose shortcuts in pointer mode */
+  enablePointerStaticActions: boolean;
+  /** Master enable for static-pose shortcuts in draw mode */
+  enableDrawStaticActions: boolean;
+  /** Show the floating cursor action label */
+  showCursorLabels: boolean;
+  /** Reverse two-finger scroll direction */
+  invertScroll: boolean;
   /**
    * Optional per-profile calibration. When present, activating this profile
    * also pushes these values into the GestureEngine config (sensitivity,
@@ -86,8 +126,25 @@ export const ACTION_LABELS: Record<GestureAction, string> = {
   zoom_out: "Zoom out",
   next: "Next (→)",
   prev: "Previous (←)",
+  home: "Home",
+  end: "End",
+  page_up: "Page up",
+  page_down: "Page down",
+  tab: "Tab",
+  shift_tab: "Shift + Tab",
+  copy: "Copy",
+  paste: "Paste",
+  cut: "Cut",
   save: "Save / download",
   clear: "Clear canvas",
+  crop_selection: "Crop selection",
+  commit_selection: "Commit selection",
+  switch_pointer: "Switch to pointer",
+  switch_draw: "Switch to draw",
+  cursor_off: "Cursor off",
+  play_pause: "Play / pause",
+  fullscreen: "Fullscreen",
+  screenshot: "Screenshot",
   escape: "Escape",
   enter: "Enter",
   space: "Space",
@@ -100,6 +157,13 @@ export const GESTURE_LABELS: Record<ConfigurableGesture, string> = {
   pinky_only: "Pinky only",
   four_fingers: "Four fingers (no thumb)",
   fist: "Fist",
+  middle_only: "Middle finger only",
+  ring_only: "Ring finger only",
+  two_finger_point: "Two-finger point",
+  three_fingers: "Three fingers",
+  peace: "Peace / V sign",
+  rock: "Rock sign",
+  phone_call: "Phone call",
 };
 
 export const defaultSettings: GestureSettings = {
@@ -139,10 +203,67 @@ export const defaultSettings: GestureSettings = {
       cooldownMs: 800,
       enabled: false,
     },
+    middle_only: {
+      pointerAction: "tab",
+      drawAction: "switch_pointer",
+      holdMs: 220,
+      cooldownMs: 420,
+      enabled: true,
+    },
+    ring_only: {
+      pointerAction: "shift_tab",
+      drawAction: "commit_selection",
+      holdMs: 260,
+      cooldownMs: 520,
+      enabled: true,
+    },
+    two_finger_point: {
+      pointerAction: "page_down",
+      drawAction: "switch_draw",
+      holdMs: 240,
+      cooldownMs: 520,
+      enabled: false,
+    },
+    three_fingers: {
+      pointerAction: "page_up",
+      drawAction: "crop_selection",
+      holdMs: 240,
+      cooldownMs: 520,
+      enabled: true,
+    },
+    peace: {
+      pointerAction: "home",
+      drawAction: "clear",
+      holdMs: 280,
+      cooldownMs: 650,
+      enabled: false,
+    },
+    rock: {
+      pointerAction: "fullscreen",
+      drawAction: "save",
+      holdMs: 300,
+      cooldownMs: 750,
+      enabled: false,
+    },
+    phone_call: {
+      pointerAction: "play_pause",
+      drawAction: "screenshot",
+      holdMs: 260,
+      cooldownMs: 650,
+      enabled: false,
+    },
   },
   palmScope: "both",
   minConfidence: 0.55,
   accuracyBias: 1.0,
+  drawPinchThreshold: 0.55,
+  scrollStepPx: 60,
+  clickCooldownMs: 220,
+  rightClickCooldownMs: 320,
+  enablePointerStaticActions: true,
+  enableDrawStaticActions: true,
+  showCursorLabels: true,
+  invertScroll: false,
 };
 
 const STORAGE_KEY = "omnipoint.gestureSettings.v2";
@@ -215,6 +336,13 @@ export function isConfigurable(g: GestureKind): g is ConfigurableGesture {
     g === "thumbs_up" ||
     g === "pinky_only" ||
     g === "four_fingers" ||
-    g === "fist"
+    g === "fist" ||
+    g === "middle_only" ||
+    g === "ring_only" ||
+    g === "two_finger_point" ||
+    g === "three_fingers" ||
+    g === "peace" ||
+    g === "rock" ||
+    g === "phone_call"
   );
 }
