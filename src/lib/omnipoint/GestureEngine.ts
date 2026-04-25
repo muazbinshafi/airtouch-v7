@@ -333,17 +333,37 @@ export class GestureEngine {
     const dyp = this.smoothedThumb[1] - this.smoothedIndex[1];
     const dzp = this.smoothedThumb[2] - this.smoothedIndex[2];
     const pinchRaw = Math.hypot(dxp, dyp, dzp);
-    // Hand scale = wrist → middle MCP (landmark 9). This is the most stable
-    // anchor for "how big is the hand on screen". Normalising pinch by hand
-    // scale makes click detection invariant to camera distance and angle.
-    const middleMcp = lm[9];
+    // Hand scale = wrist → INDEX MCP (landmark 5). This is shorter than
+    // wrist→middleMCP, which makes the resulting pinch ratio LARGER for the
+    // same physical gap — boosting effective resolution near zero. The result
+    // is mm-level discrimination of small thumb-index distances.
+    const indexMcp = lm[5];
     const handScale = Math.max(
-      0.06,
-      Math.hypot(middleMcp.x - wrist.x, middleMcp.y - wrist.y, middleMcp.z - wrist.z),
+      0.05,
+      Math.hypot(indexMcp.x - wrist.x, indexMcp.y - wrist.y, indexMcp.z - wrist.z),
     );
     // pinch is now expressed as a ratio of hand size — robust at any distance.
     const pinch = pinchRaw / handScale;
-    const pressure = Math.min(1, Math.max(0, 1 - pinch / 0.55));
+
+    // Pinch velocity (ratio per second). Negative = fingers closing.
+    if (this.prevPinch != null && this.prevPinchT > 0) {
+      const dtp = Math.max(0.001, (tNow - this.prevPinchT) / 1000);
+      // Light EMA on velocity to filter outliers without hiding intent.
+      const instV = (pinch - this.prevPinch) / dtp;
+      this.pinchVelocity = this.pinchVelocity * 0.5 + instV * 0.5;
+    }
+    this.prevPinch = pinch;
+    this.prevPinchT = tNow;
+    // Effective threshold: when fingers are actively closing fast, lower the
+    // bar slightly so the click fires *as the user reaches* the gap — not
+    // after they've already overshot. Cap the boost so static hands don't
+    // accidentally trigger.
+    const closingBoost = this.pinchVelocity < -0.4
+      ? Math.min(0.12, Math.abs(this.pinchVelocity) * 0.06)
+      : 0;
+    const effClickThreshold = this.config.clickThreshold + closingBoost;
+
+    const pressure = Math.min(1, Math.max(0, 1 - pinch / 0.7));
 
     // ---- Finger state detection (extended/folded) ----
     // Index/middle/ring/pinky: tip above PIP (lower y) means extended.
