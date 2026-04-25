@@ -3,10 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Hand, Loader2, ArrowRight, Mail, Lock, User as UserIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Hand, Loader2, ArrowRight, Mail, Lock, User as UserIcon, WifiOff } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { useOfflineMode, OfflineModeStore } from "@/lib/offlineMode";
 import { toast } from "@/hooks/use-toast";
 
 type Mode = "signin" | "signup";
@@ -14,11 +15,13 @@ type Mode = "signin" | "signup";
 const Auth = () => {
   const navigate = useNavigate();
   const { session, loading: authLoading } = useAuth();
+  const offline = useOfflineMode();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const cloudDisabled = offline || !isSupabaseConfigured;
 
   useEffect(() => {
     document.title = mode === "signin" ? "Sign in — OmniPoint" : "Create account — OmniPoint";
