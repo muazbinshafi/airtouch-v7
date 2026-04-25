@@ -818,12 +818,15 @@ export class BrowserCursor {
     this.setRingState(g);
 
     if (this.mode === "draw") {
-      // Drawing engages on click, drag, or any sustained pinch under the
-      // ratio threshold. pinchDistance is normalised by hand size so this
-      // works at any distance from the camera.
-      const isDrawing =
-        g === "click" || g === "drag" ||
-        (snap.pinchDistance > 0 && snap.pinchDistance < 0.55);
+      // Drawing engages strictly on the GestureEngine's click/drag state.
+      // The engine already does hand-size-normalised pinch detection with
+      // hysteresis (clickThreshold → releaseThreshold) and debouncing, so
+      // we MUST trust it as the single source of truth. Using a raw
+      // pinchDistance shortcut here causes:
+      //   • drawing to engage before `click` fires (phantom strokes),
+      //   • one-shot tools (fill / picker / polygon vertex) to re-fire
+      //     every frame because the rising edge keeps re-arming.
+      const isDrawing = g === "click" || g === "drag";
       const tool = PaintStore.get().tool;
       const isShape = PaintStore.isShape(tool);
       const isFill = PaintStore.isFill(tool);
