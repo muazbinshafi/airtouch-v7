@@ -204,7 +204,7 @@ export class BrowserCursor {
     }
     for (let i = 0; i < 21; i++) {
       const c = document.createElementNS(SVG_NS, "circle") as SVGCircleElement;
-      c.setAttribute("r", "2.4");
+      c.setAttribute("r", "5");
       c.setAttribute("fill", "hsl(var(--primary))");
       this.hand.appendChild(c);
       this.handJoints.push(c);
@@ -212,14 +212,14 @@ export class BrowserCursor {
     // Highlight thumb tip (4) and index tip (8)
     this.handThumbTip = this.handJoints[4];
     this.handIndexTip = this.handJoints[8];
-    this.handThumbTip.setAttribute("r", "4");
+    this.handThumbTip.setAttribute("r", "8");
     this.handThumbTip.setAttribute("fill", "white");
     this.handThumbTip.setAttribute("stroke", "hsl(var(--primary))");
-    this.handThumbTip.setAttribute("stroke-width", "1.5");
-    this.handIndexTip.setAttribute("r", "4.5");
+    this.handThumbTip.setAttribute("stroke-width", "3");
+    this.handIndexTip.setAttribute("r", "9");
     this.handIndexTip.setAttribute("fill", "white");
     this.handIndexTip.setAttribute("stroke", "hsl(var(--primary))");
-    this.handIndexTip.setAttribute("stroke-width", "2");
+    this.handIndexTip.setAttribute("stroke-width", "3.5");
 
     this.root.appendChild(this.drawCanvas);
     this.root.appendChild(this.hand);
