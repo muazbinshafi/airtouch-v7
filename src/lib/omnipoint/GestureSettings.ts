@@ -307,7 +307,15 @@ export const GestureSettingsStore = {
     return snapshot;
   },
   patch(p: Partial<GestureSettings>) {
-    snapshot = { ...snapshot, ...p };
+    snapshot = {
+      ...snapshot,
+      ...p,
+      bindings: {
+        ...defaultSettings.bindings,
+        ...snapshot.bindings,
+        ...(p.bindings ?? {}),
+      },
+    };
     save(snapshot);
     for (const l of listeners) l();
   },
