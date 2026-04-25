@@ -1033,6 +1033,7 @@ export class BrowserCursor {
 
         this.tryFireStaticGesture(g, snap.confidence, "draw");
         this.lastGesture = g;
+        this.wasDrawActive = isDrawing;
         return;
       }
 
@@ -1067,6 +1068,7 @@ export class BrowserCursor {
       // from the user's gesture bindings, gated by hold-time + cooldown.
       this.tryFireStaticGesture(g, snap.confidence, "draw");
       this.lastGesture = g;
+      this.wasDrawActive = isDrawing;
       return;
     }
 
