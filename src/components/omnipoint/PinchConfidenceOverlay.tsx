@@ -58,8 +58,8 @@ export function PinchConfidenceOverlay({ visible, onClose }: Props) {
     }
     ctx.globalAlpha = 1;
 
-    // Pinch is normalized roughly 0..1.5+. Clamp to 0..1.5 for display.
-    const MAX = 1.5;
+    // Pinch ratio range expanded to 0..2.0 to fit new index-MCP-based scale.
+    const MAX = 2.0;
     const samples = samplesRef.current;
     const xStep = w / Math.max(60, samples.length);
 
