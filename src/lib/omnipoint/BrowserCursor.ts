@@ -169,18 +169,18 @@ export class BrowserCursor {
 
     const SVG_NS = "http://www.w3.org/2000/svg";
     this.hand = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
-    this.hand.setAttribute("width", "260");
-    this.hand.setAttribute("height", "260");
-    this.hand.setAttribute("viewBox", "-130 -130 260 260");
+    this.hand.setAttribute("width", "560");
+    this.hand.setAttribute("height", "560");
+    this.hand.setAttribute("viewBox", "-280 -280 560 560");
     Object.assign(this.hand.style, {
       position: "absolute",
-      width: "260px",
-      height: "260px",
-      marginLeft: "-130px",
-      marginTop: "-130px",
+      width: "560px",
+      height: "560px",
+      marginLeft: "-280px",
+      marginTop: "-280px",
       pointerEvents: "none",
       overflow: "visible",
-      filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.55))",
+      filter: "drop-shadow(0 0 10px hsl(var(--primary) / 0.6))",
       transition: "opacity 140ms ease-out",
       opacity: "0",
       willChange: "transform, opacity",
@@ -197,7 +197,7 @@ export class BrowserCursor {
     for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
       const line = document.createElementNS(SVG_NS, "line") as SVGLineElement;
       line.setAttribute("stroke", "hsl(var(--primary))");
-      line.setAttribute("stroke-width", "2.5");
+      line.setAttribute("stroke-width", "5");
       line.setAttribute("stroke-linecap", "round");
       this.hand.appendChild(line);
       this.handBones.push(line);
