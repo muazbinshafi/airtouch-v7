@@ -579,6 +579,129 @@ function Architecture() {
   );
 }
 
+const REPO_BRIDGE = "https://github.com/muazbinshafi/airtouch-v3/tree/main/bridge";
+const REPO_BRIDGE_PY = "https://github.com/muazbinshafi/airtouch-v3/blob/main/bridge/omnipoint_bridge.py";
+const REPO_BRIDGE_REQ = "https://github.com/muazbinshafi/airtouch-v3/blob/main/bridge/requirements.txt";
+const REPO_BRIDGE_README = "https://github.com/muazbinshafi/airtouch-v3/blob/main/bridge/README.md";
+
+function BridgeSection() {
+  const platforms = [
+    {
+      id: "linux",
+      icon: Cpu,
+      name: "Linux · Kali · Ubuntu",
+      tag: "Recommended for tinkerers",
+      install: "sudo apt install python3-venv python3-pip\ncd bridge\npython3 -m venv .venv && source .venv/bin/activate\npip install -r requirements.txt\npython3 omnipoint_bridge.py",
+      note: "Wayland users: switch to an X11 session — PyAutoGUI requires X.",
+    },
+    {
+      id: "windows",
+      icon: Terminal,
+      name: "Windows 10 / 11",
+      tag: "PowerShell · no admin needed",
+      install: "cd bridge\npython -m venv .venv\n.venv\\Scripts\\activate\npip install -r requirements.txt\npython omnipoint_bridge.py",
+      note: "Allow Python through the firewall on first run.",
+    },
+    {
+      id: "macos",
+      icon: Apple,
+      name: "macOS 12+",
+      tag: "Apple Silicon & Intel",
+      install: "cd bridge\npython3 -m venv .venv && source .venv/bin/activate\npip install -r requirements.txt\npython3 omnipoint_bridge.py",
+      note: "Grant Accessibility permission to Terminal in System Settings.",
+    },
+  ];
+
+  return (
+    <section id="bridge" className="border-t border-border bg-secondary/20">
+      <div className="mx-auto max-w-7xl px-6 py-24 lg:py-32">
+        <SectionHead
+          eyebrow="OS Bridge"
+          title="One tiny daemon. Real OS control."
+          subtitle="A 200-line Python WebSocket server lives in /bridge on GitHub. It listens on ws://localhost:8765 and turns gesture intents into kernel-level mouse and keyboard events on Windows, macOS, and any Linux distro — including Kali."
+        />
+
+        <div className="mt-10 grid sm:grid-cols-3 gap-3">
+          <a href={REPO_BRIDGE_PY} target="_blank" rel="noopener noreferrer" className="panel p-4 hover:border-primary/40 transition-colors group">
+            <div className="flex items-center gap-2 mb-2">
+              <Server className="w-4 h-4 text-primary" />
+              <span className="font-mono text-xs text-foreground">omnipoint_bridge.py</span>
+            </div>
+            <p className="text-xs text-muted-foreground">WebSocket server · PyAutoGUI · heartbeat · kill switch</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-mono tracking-[0.2em] text-primary group-hover:underline">
+              VIEW SOURCE <ExternalLink className="w-3 h-3" />
+            </span>
+          </a>
+          <a href={REPO_BRIDGE_REQ} target="_blank" rel="noopener noreferrer" className="panel p-4 hover:border-primary/40 transition-colors group">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers className="w-4 h-4 text-primary" />
+              <span className="font-mono text-xs text-foreground">requirements.txt</span>
+            </div>
+            <p className="text-xs text-muted-foreground">websockets · pyautogui — that's the whole dep tree.</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-mono tracking-[0.2em] text-primary group-hover:underline">
+              VIEW SOURCE <ExternalLink className="w-3 h-3" />
+            </span>
+          </a>
+          <a href={REPO_BRIDGE_README} target="_blank" rel="noopener noreferrer" className="panel p-4 hover:border-primary/40 transition-colors group">
+            <div className="flex items-center gap-2 mb-2">
+              <Github className="w-4 h-4 text-primary" />
+              <span className="font-mono text-xs text-foreground">README.md</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Per-OS install notes, troubleshooting, packet schema.</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-mono tracking-[0.2em] text-primary group-hover:underline">
+              VIEW SOURCE <ExternalLink className="w-3 h-3" />
+            </span>
+          </a>
+        </div>
+
+        <div className="mt-10 grid lg:grid-cols-3 gap-5">
+          {platforms.map((p) => {
+            const Icon = p.icon;
+            return (
+              <div key={p.id} className="panel-elevated p-6 flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-md">
+                    <Icon className="w-5 h-5 text-white" strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-base text-foreground">{p.name}</h3>
+                    <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">{p.tag}</p>
+                  </div>
+                </div>
+                <pre className="flex-1 p-3 font-mono text-[11.5px] text-foreground/90 bg-card border border-border overflow-x-auto leading-relaxed">{p.install}</pre>
+                <p className="mt-3 text-xs text-muted-foreground flex items-start gap-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" />
+                  {p.note}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Link to="/bridge" className="btn-primary h-11 px-5 text-sm">
+            <Cpu className="w-4 h-4" />
+            Guided installer
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <a href={REPO_BRIDGE} target="_blank" rel="noopener noreferrer" className="btn-ghost h-11 px-5 text-sm">
+            <Github className="w-4 h-4" />
+            Browse /bridge on GitHub
+          </a>
+          <Link to="/demo" className="btn-ghost h-11 px-5 text-sm">
+            <Play className="w-4 h-4 fill-current" />
+            Skip — try browser-only
+          </Link>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          No bridge? No problem. Browser-only mode runs the demo with an in-page cursor and paint canvas — works on Kali, Chromebooks, even iPad.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function ArchBox({ icon: Icon, title, lines }: { icon: typeof Eye; title: string; lines: string[] }) {
   return (
     <div className="panel-elevated p-7">
