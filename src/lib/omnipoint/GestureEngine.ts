@@ -438,13 +438,9 @@ export class GestureEngine {
         gesture = "drag";
       }
     } else if (isFist) {
-      // Reset pinch timing whenever we exit the pinch branch.
-      if (this.clickState !== "IDLE" && pinch >= this.config.releaseThreshold) {
-        this.clickState = "IDLE";
-      }
-      this.pinchStartTs = 0;
       gesture = "fist";
       this.clickState = "IDLE";
+      this.pinchStartTs = 0;
       this.lastScrollY = null;
     } else if (isOpenPalm) {
       gesture = "open_palm";
