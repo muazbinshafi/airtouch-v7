@@ -3,10 +3,11 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Hand, Loader2, ArrowRight, Mail, Lock, User as UserIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Hand, Loader2, ArrowRight, Mail, Lock, User as UserIcon, WifiOff } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { useOfflineMode, OfflineModeStore } from "@/lib/offlineMode";
 import { toast } from "@/hooks/use-toast";
 
 type Mode = "signin" | "signup";
@@ -14,11 +15,13 @@ type Mode = "signin" | "signup";
 const Auth = () => {
   const navigate = useNavigate();
   const { session, loading: authLoading } = useAuth();
+  const offline = useOfflineMode();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const cloudDisabled = offline || !isSupabaseConfigured;
 
   useEffect(() => {
     document.title = mode === "signin" ? "Sign in — OmniPoint" : "Create account — OmniPoint";
@@ -92,30 +95,74 @@ const Auth = () => {
         </div>
 
         <div className="border border-border bg-card shadow-2xl p-6 sm:p-8">
-          <div className="grid grid-cols-2 gap-1 mb-6 border hairline">
-            {(["signin", "signup"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`h-9 font-mono text-[11px] tracking-[0.25em] transition-colors ${
-                  mode === m
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
+          {/* Offline Mode toggle — bypasses Supabase entirely */}
+          <div className="mb-5 flex items-center justify-between gap-3 border border-border bg-background/50 px-3 py-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <WifiOff className="w-4 h-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <div className="font-mono text-[11px] tracking-[0.2em] text-foreground">
+                  OFFLINE MODE
+                </div>
+                <div className="text-[11px] text-muted-foreground truncate">
+                  {isSupabaseConfigured
+                    ? "Skip sign-in. Settings stay on this device."
+                    : "Cloud not configured — offline is the only option."}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => OfflineModeStore.set(!offline)}
+              disabled={!isSupabaseConfigured}
+              aria-pressed={offline}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+                offline ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-background shadow transition-transform ${
+                  offline ? "translate-x-5" : "translate-x-0"
                 }`}
-              >
-                {m === "signin" ? "SIGN IN" : "CREATE ACCOUNT"}
-              </button>
-            ))}
+              />
+            </button>
           </div>
 
-          <button
-            onClick={handleGoogle}
-            disabled={busy}
-            className="w-full h-11 mb-4 inline-flex items-center justify-center gap-2.5 border border-border bg-background hover:bg-secondary text-foreground font-medium text-sm disabled:opacity-50 transition-colors"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
+          {offline && (
+            <button
+              onClick={() => navigate("/demo", { replace: true })}
+              className="w-full h-11 mb-4 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+            >
+              Enter demo offline
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+
+          <fieldset disabled={cloudDisabled} className="contents">
+            <div className="grid grid-cols-2 gap-1 mb-6 border hairline">
+              {(["signin", "signup"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  className={`h-9 font-mono text-[11px] tracking-[0.25em] transition-colors disabled:opacity-50 ${
+                    mode === m
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m === "signin" ? "SIGN IN" : "CREATE ACCOUNT"}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={handleGoogle}
+              disabled={busy || cloudDisabled}
+              className="w-full h-11 mb-4 inline-flex items-center justify-center gap-2.5 border border-border bg-background hover:bg-secondary text-foreground font-medium text-sm disabled:opacity-50 transition-colors"
+            >
+              <GoogleIcon />
+              Continue with Google
+            </button>
 
           <div className="flex items-center gap-3 my-4">
             <div className="flex-1 h-px bg-border" />
@@ -168,6 +215,7 @@ const Auth = () => {
               )}
             </button>
           </form>
+          </fieldset>
 
           <p className="mt-5 text-center text-xs text-muted-foreground">
             By continuing you agree to use the app responsibly.
