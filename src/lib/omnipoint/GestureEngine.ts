@@ -234,6 +234,7 @@ export class GestureEngine {
         fingerCount: 0,
         pinchDistance: 0,
         gesture: "none",
+        landmarks: [],
       });
     }
 
@@ -542,6 +543,9 @@ export class GestureEngine {
       committed = gesture;
     }
 
+    // Mirrored normalized landmarks for live overlay (selfie view).
+    const mirroredLandmarks = lm.map((p) => ({ x: 1 - p.x, y: p.y, z: p.z }));
+
     TelemetryStore.set({
       cursorX: this.cursor.x,
       cursorY: this.cursor.y,
@@ -551,6 +555,7 @@ export class GestureEngine {
       fingersExtended,
       fingerCount,
       pinchDistance: pinch,
+      landmarks: mirroredLandmarks,
     });
 
     this.emitMotion(committed, pressure);

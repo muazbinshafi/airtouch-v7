@@ -35,6 +35,11 @@ export class BrowserCursor {
   private dot: HTMLDivElement;
   private ring: HTMLDivElement;
   private label: HTMLDivElement;
+  private hand: SVGSVGElement;
+  private handBones: SVGLineElement[] = [];
+  private handJoints: SVGCircleElement[] = [];
+  private handIndexTip: SVGCircleElement | null = null;
+  private handThumbTip: SVGCircleElement | null = null;
   private drawCanvas: HTMLCanvasElement;
   private drawCtx: CanvasRenderingContext2D | null;
 
@@ -157,11 +162,74 @@ export class BrowserCursor {
       willChange: "transform, opacity",
     } as CSSStyleDeclaration);
 
+    // Live hand skeleton overlay (replaces the cursor circle visually).
+    // We keep dot/ring nodes for legacy code paths but hide them.
+    this.dot.style.display = "none";
+    this.ring.style.display = "none";
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    this.hand = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
+    this.hand.setAttribute("width", "260");
+    this.hand.setAttribute("height", "260");
+    this.hand.setAttribute("viewBox", "-130 -130 260 260");
+    Object.assign(this.hand.style, {
+      position: "absolute",
+      width: "260px",
+      height: "260px",
+      marginLeft: "-130px",
+      marginTop: "-130px",
+      pointerEvents: "none",
+      overflow: "visible",
+      filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.55))",
+      transition: "opacity 140ms ease-out",
+      opacity: "0",
+      willChange: "transform, opacity",
+    } as CSSStyleDeclaration);
+
+    const HAND_CONNECTIONS: [number, number][] = [
+      [0, 1], [1, 2], [2, 3], [3, 4],
+      [0, 5], [5, 6], [6, 7], [7, 8],
+      [5, 9], [9, 10], [10, 11], [11, 12],
+      [9, 13], [13, 14], [14, 15], [15, 16],
+      [13, 17], [17, 18], [18, 19], [19, 20],
+      [0, 17],
+    ];
+    for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
+      const line = document.createElementNS(SVG_NS, "line") as SVGLineElement;
+      line.setAttribute("stroke", "hsl(var(--primary))");
+      line.setAttribute("stroke-width", "2.5");
+      line.setAttribute("stroke-linecap", "round");
+      this.hand.appendChild(line);
+      this.handBones.push(line);
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = document.createElementNS(SVG_NS, "circle") as SVGCircleElement;
+      c.setAttribute("r", "2.4");
+      c.setAttribute("fill", "hsl(var(--primary))");
+      this.hand.appendChild(c);
+      this.handJoints.push(c);
+    }
+    // Highlight thumb tip (4) and index tip (8)
+    this.handThumbTip = this.handJoints[4];
+    this.handIndexTip = this.handJoints[8];
+    this.handThumbTip.setAttribute("r", "4");
+    this.handThumbTip.setAttribute("fill", "white");
+    this.handThumbTip.setAttribute("stroke", "hsl(var(--primary))");
+    this.handThumbTip.setAttribute("stroke-width", "1.5");
+    this.handIndexTip.setAttribute("r", "4.5");
+    this.handIndexTip.setAttribute("fill", "white");
+    this.handIndexTip.setAttribute("stroke", "hsl(var(--primary))");
+    this.handIndexTip.setAttribute("stroke-width", "2");
+
     this.root.appendChild(this.drawCanvas);
+    this.root.appendChild(this.hand);
     this.root.appendChild(this.ring);
     this.root.appendChild(this.dot);
     this.root.appendChild(this.label);
+    this._handConnections = HAND_CONNECTIONS;
   }
+
+  private _handConnections: [number, number][] = [];
 
   attach() {
     if (!this.root.isConnected) document.body.appendChild(this.root);
@@ -800,6 +868,71 @@ export class BrowserCursor {
     this.ring.style.transform = `translate3d(0,0,0) scale(${scale})`;
   }
 
+  /**
+   * Render the live MediaPipe hand skeleton centered on the cursor.
+   * Landmark 8 (index fingertip) is anchored at the cursor origin so the
+   * "tip" of the user's index finger always points at the click location.
+   * Auto-scaled by wrist→index-MCP so on-screen size is camera-distance
+   * independent.
+   */
+  private updateHandSkeleton(snap: ReturnType<typeof TelemetryStore.get>) {
+    const lm = snap.landmarks;
+    if (!snap.handPresent || lm.length < 21) {
+      this.hand.style.opacity = "0";
+      return;
+    }
+    const refDx = lm[5].x - lm[0].x;
+    const refDy = lm[5].y - lm[0].y;
+    const refLen = Math.hypot(refDx, refDy) || 0.001;
+    const TARGET_PX = 70;
+    const scale = TARGET_PX / refLen;
+
+    const ax = lm[8].x;
+    const ay = lm[8].y;
+    const pts = lm.map((p) => ({
+      x: (p.x - ax) * scale,
+      y: (p.y - ay) * scale,
+    }));
+
+    for (let i = 0; i < this._handConnections.length; i++) {
+      const [a, b] = this._handConnections[i];
+      const line = this.handBones[i];
+      line.setAttribute("x1", pts[a].x.toFixed(2));
+      line.setAttribute("y1", pts[a].y.toFixed(2));
+      line.setAttribute("x2", pts[b].x.toFixed(2));
+      line.setAttribute("y2", pts[b].y.toFixed(2));
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = this.handJoints[i];
+      c.setAttribute("cx", pts[i].x.toFixed(2));
+      c.setAttribute("cy", pts[i].y.toFixed(2));
+    }
+
+    const pinch = snap.pinchDistance;
+    const closing = pinch > 0 && pinch < 0.85;
+    if (this.handIndexTip) {
+      this.handIndexTip.setAttribute("r", closing ? "5.5" : "4.5");
+      this.handIndexTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
+    }
+    if (this.handThumbTip) {
+      this.handThumbTip.setAttribute("r", closing ? "5" : "4");
+      this.handThumbTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
+    }
+    const ext = snap.fingersExtended;
+    const fingerBoneRanges: [number, number, number][] = [
+      [0, 3, 0], [4, 7, 1], [8, 11, 2], [12, 15, 3], [16, 19, 4],
+    ];
+    for (const [s, e, fIdx] of fingerBoneRanges) {
+      const active = ext[fIdx];
+      for (let i = s; i <= e; i++) {
+        this.handBones[i].setAttribute("stroke-opacity", active ? "1" : "0.35");
+      }
+    }
+    this.handBones[20].setAttribute("stroke-opacity", "0.85");
+
+    this.hand.style.opacity = "1";
+  }
+
   private loop = () => {
     this.rafId = requestAnimationFrame(this.loop);
     if (this.mode === "off") return;
@@ -815,6 +948,9 @@ export class BrowserCursor {
     this.dot.style.top = `${y}px`;
     this.label.style.left = `${x}px`;
     this.label.style.top = `${y}px`;
+    this.hand.style.left = `${x}px`;
+    this.hand.style.top = `${y}px`;
+    this.updateHandSkeleton(snap);
 
     const g = snap.gesture;
     this.setRingState(g);
