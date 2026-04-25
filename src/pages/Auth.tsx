@@ -243,6 +243,7 @@ const Auth = () => {
             CONTINUE WITHOUT ACCOUNT →
           </Link>
         </div>
+        </div>
       </div>
     </main>
   );
