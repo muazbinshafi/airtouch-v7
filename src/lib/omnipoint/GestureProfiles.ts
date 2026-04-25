@@ -38,6 +38,14 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function withDefaults(settings: GestureSettings): GestureSettings {
+  return {
+    ...defaultSettings,
+    ...settings,
+    bindings: { ...defaultSettings.bindings, ...(settings.bindings ?? {}) },
+  };
+}
+
 function makeBuiltins(): GestureProfile[] {
   const now = Date.now();
   return [
@@ -130,7 +138,13 @@ function load(): Snapshot {
       const profiles = makeBuiltins();
       return { profiles, activeId: profiles[0].id };
     }
-    return parsed;
+    return {
+      ...parsed,
+      profiles: parsed.profiles.map((p) => ({
+        ...p,
+        settings: withDefaults(p.settings),
+      })),
+    };
   } catch {
     const profiles = makeBuiltins();
     return { profiles, activeId: profiles[0].id };
@@ -172,7 +186,7 @@ export const GestureProfileStore = {
     if (!p) return;
     state = { ...state, activeId: id };
     persist(state);
-    GestureSettingsStore.patch(p.settings);
+    GestureSettingsStore.patch(withDefaults(p.settings));
     if (p.settings.engineConfig && engineCfgListener) {
       engineCfgListener(p.settings.engineConfig);
     }
@@ -184,7 +198,7 @@ export const GestureProfileStore = {
     persist(state);
     const active = state.profiles.find((p) => p.id === state.activeId);
     if (active) {
-      GestureSettingsStore.patch(active.settings);
+      GestureSettingsStore.patch(withDefaults(active.settings));
       if (active.settings.engineConfig && engineCfgListener) {
         engineCfgListener(active.settings.engineConfig);
       }

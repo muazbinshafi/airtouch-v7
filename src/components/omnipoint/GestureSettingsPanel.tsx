@@ -26,8 +26,25 @@ const ACTIONS: GestureAction[] = [
   "zoom_out",
   "next",
   "prev",
+  "home",
+  "end",
+  "page_up",
+  "page_down",
+  "tab",
+  "shift_tab",
+  "copy",
+  "paste",
+  "cut",
   "save",
   "clear",
+  "crop_selection",
+  "commit_selection",
+  "switch_pointer",
+  "switch_draw",
+  "cursor_off",
+  "play_pause",
+  "fullscreen",
+  "screenshot",
   "escape",
   "enter",
   "space",
@@ -40,6 +57,13 @@ const GESTURES: ConfigurableGesture[] = [
   "pinky_only",
   "four_fingers",
   "fist",
+  "middle_only",
+  "ring_only",
+  "two_finger_point",
+  "three_fingers",
+  "peace",
+  "rock",
+  "phone_call",
 ];
 
 export function GestureSettingsPanel() {
@@ -243,6 +267,40 @@ export function GestureSettingsPanel() {
                 value={settings.accuracyBias}
                 onChange={(v) => GestureSettingsStore.patch({ accuracyBias: v })}
               />
+              <Slider
+                label="DRAW PINCH"
+                hint="Lower = stricter pinch to paint. Higher = easier drawing."
+                min={0.25} max={0.85} step={0.01}
+                value={settings.drawPinchThreshold}
+                onChange={(v) => GestureSettingsStore.patch({ drawPinchThreshold: v })}
+              />
+              <Slider
+                label="SCROLL STEP"
+                hint="Pixels moved by each scroll gesture pulse."
+                min={20} max={160} step={5}
+                value={settings.scrollStepPx}
+                onChange={(v) => GestureSettingsStore.patch({ scrollStepPx: v })}
+              />
+              <Slider
+                label="CLICK COOLDOWN"
+                min={100} max={700} step={10}
+                value={settings.clickCooldownMs}
+                onChange={(v) => GestureSettingsStore.patch({ clickCooldownMs: v })}
+                compact
+              />
+              <Slider
+                label="RIGHT CLICK COOLDOWN"
+                min={150} max={900} step={10}
+                value={settings.rightClickCooldownMs}
+                onChange={(v) => GestureSettingsStore.patch({ rightClickCooldownMs: v })}
+                compact
+              />
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <Toggle label="POINTER POSES" checked={settings.enablePointerStaticActions} onChange={(v) => GestureSettingsStore.patch({ enablePointerStaticActions: v })} />
+                <Toggle label="DRAW POSES" checked={settings.enableDrawStaticActions} onChange={(v) => GestureSettingsStore.patch({ enableDrawStaticActions: v })} />
+                <Toggle label="CURSOR LABELS" checked={settings.showCursorLabels} onChange={(v) => GestureSettingsStore.patch({ showCursorLabels: v })} />
+                <Toggle label="INVERT SCROLL" checked={settings.invertScroll} onChange={(v) => GestureSettingsStore.patch({ invertScroll: v })} />
+              </div>
             </section>
 
             <section className="p-4 border-b hairline">
@@ -251,7 +309,8 @@ export function GestureSettingsPanel() {
                 Remap each pose. Hold-time prevents accidental fires.
               </p>
               {GESTURES.map((g) => {
-                const b = settings.bindings[g];
+                const b = settings.bindings[g] ?? GestureSettingsStore.get().bindings[g];
+                if (!b) return null;
                 return (
                   <div
                     key={g}
@@ -333,6 +392,30 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <div className="font-mono text-[10px] tracking-[0.3em] text-emerald-glow mb-2">
       ▸ {children}
     </div>
+  );
+}
+
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className={`h-8 px-2 border flex items-center justify-between gap-2 cursor-pointer ${
+      checked ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+    }`}>
+      <span className="font-mono text-[9px] tracking-[0.18em] truncate">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-primary"
+      />
+    </label>
   );
 }
 

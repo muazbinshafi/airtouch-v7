@@ -25,6 +25,13 @@ const GESTURE_LABEL: Record<GestureKind, string> = {
   fist: "FIST",
   pinky_only: "PINKY",
   four_fingers: "FOUR FINGERS",
+  middle_only: "MIDDLE ONLY",
+  ring_only: "RING ONLY",
+  two_finger_point: "TWO FINGERS",
+  three_fingers: "THREE FINGERS",
+  peace: "PEACE",
+  rock: "ROCK",
+  phone_call: "PHONE CALL",
 };
 
 export function GesturePreview() {

@@ -16,6 +16,13 @@ const GESTURE_META: Record<GestureKind, { label: string; tone: "ok" | "warn" | "
   fist:        { label: "FIST",         tone: "danger" },
   pinky_only:  { label: "PINKY · ZOOM −", tone: "ok" },
   four_fingers:{ label: "FOUR · NEXT →",  tone: "ok" },
+  middle_only: { label: "MIDDLE ONLY",   tone: "ok" },
+  ring_only:   { label: "RING ONLY",     tone: "ok" },
+  two_finger_point: { label: "TWO FINGERS", tone: "ok" },
+  three_fingers: { label: "THREE FINGERS", tone: "ok" },
+  peace:       { label: "PEACE",         tone: "ok" },
+  rock:        { label: "ROCK",          tone: "warn" },
+  phone_call:  { label: "PHONE CALL",    tone: "ok" },
 };
 
 /**

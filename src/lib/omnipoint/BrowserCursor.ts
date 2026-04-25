@@ -47,10 +47,8 @@ export class BrowserCursor {
   private lastClickAt = 0;
   private lastRightClickAt = 0;
   private lastScrollAt = 0;
-  private lastBackAt = 0;
-  private lastZoomAt = 0;
-  private lastNextAt = 0;
   private lastDrawPt: DrawSegment | null = null;
+  private wasDrawActive = false;
   // Shape preview state — when drawing a shape we hold the start anchor
   // and a snapshot of the canvas to redraw the rubber-band on each frame.
   private shapeStart: DrawSegment | null = null;
@@ -72,7 +70,6 @@ export class BrowserCursor {
   private selectResize: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w" | null = null;
   // Spray throttle.
   private lastSprayAt = 0;
-  private accentColor = "var(--primary)";
 
   // Pose-hold buffer for higher accuracy on static gestures. Tracks the
   // currently-held configurable gesture, when it started, and when it last
@@ -227,7 +224,10 @@ export class BrowserCursor {
   setMode(mode: CursorMode) {
     this.mode = mode;
     this.root.style.display = mode === "off" ? "none" : "block";
-    if (mode !== "draw") this.lastDrawPt = null;
+    if (mode !== "draw") {
+      this.lastDrawPt = null;
+      this.wasDrawActive = false;
+    }
     if (mode === "off" && this.isDown) {
       this.dispatchUp(this.lastTarget);
       this.isDown = false;
@@ -561,7 +561,6 @@ export class BrowserCursor {
     }
     this.lastDrawPt = { x, y };
     this.resetCtx();
-    void this.accentColor;
   }
 
   private drawShapePreview(x: number, y: number) {
@@ -781,8 +780,9 @@ export class BrowserCursor {
   }
 
   private setLabel(text: string) {
+    const settings = GestureSettingsStore.get();
     if (this.label.textContent !== text) this.label.textContent = text;
-    this.label.style.opacity = text ? "1" : "0";
+    this.label.style.opacity = text && settings.showCursorLabels ? "1" : "0";
   }
 
   private setRingState(gesture: GestureKind) {
@@ -794,6 +794,8 @@ export class BrowserCursor {
     else if (gesture === "drag") { bg = "hsl(var(--primary) / 0.5)"; scale = 0.85; }
     else if (gesture === "fist") { bg = "hsl(var(--muted) / 0.4)"; scale = 1.1; }
     else if (gesture === "open_palm") { bg = "hsl(var(--accent) / 0.30)"; scale = 1.25; }
+    else if (gesture === "two_finger_point" || gesture === "peace") { bg = "hsl(var(--primary) / 0.25)"; scale = 1.15; }
+    else if (gesture === "rock") { bg = "hsl(var(--accent) / 0.28)"; scale = 1.2; }
     this.ring.style.backgroundColor = bg;
     this.ring.style.transform = `translate3d(0,0,0) scale(${scale})`;
   }
@@ -818,15 +820,13 @@ export class BrowserCursor {
     this.setRingState(g);
 
     if (this.mode === "draw") {
-      // Drawing engages strictly on the GestureEngine's click/drag state.
-      // The engine already does hand-size-normalised pinch detection with
-      // hysteresis (clickThreshold → releaseThreshold) and debouncing, so
-      // we MUST trust it as the single source of truth. Using a raw
-      // pinchDistance shortcut here causes:
-      //   • drawing to engage before `click` fires (phantom strokes),
-      //   • one-shot tools (fill / picker / polygon vertex) to re-fire
-      //     every frame because the rising edge keeps re-arming.
-      const isDrawing = g === "click" || g === "drag";
+      // Draw mode must react immediately to a real pinch. The previous
+      // version used the normalized pinch ratio as a fallback; keep that
+      // behavior so drawing still works when the engine commits a brief
+      // non-drawing gesture between click/drag frames.
+      const settings = GestureSettingsStore.get();
+      const isPinching = snap.pinchDistance > 0 && snap.pinchDistance < settings.drawPinchThreshold;
+      const isDrawing = g === "click" || g === "drag" || isPinching;
       const tool = PaintStore.get().tool;
       const isShape = PaintStore.isShape(tool);
       const isFill = PaintStore.isFill(tool);
@@ -834,7 +834,7 @@ export class BrowserCursor {
 
       if (isFill) {
         // Trigger flood-fill once on the rising edge of pinch / click.
-        const wasDrawing = this.lastGesture === "click" || this.lastGesture === "drag";
+        const wasDrawing = this.wasDrawActive;
         if (isDrawing && !wasDrawing) {
           const snapImg = this.snapshotCanvas();
           if (snapImg) PaintHistory.push(snapImg);
@@ -843,12 +843,12 @@ export class BrowserCursor {
         this.setLabel(isDrawing ? "FILL" : "FILL · CLICK TO POUR");
         this.tryFireStaticGesture(g, snap.confidence, "draw");
         this.lastGesture = g;
+        this.wasDrawActive = isDrawing;
         return;
       }
 
       if (isSpecial) {
-        const wasDrawing =
-          this.lastGesture === "click" || this.lastGesture === "drag";
+        const wasDrawing = this.wasDrawActive;
         const risingEdge = isDrawing && !wasDrawing;
         const fallingEdge = !isDrawing && wasDrawing;
 
@@ -1036,6 +1036,7 @@ export class BrowserCursor {
 
         this.tryFireStaticGesture(g, snap.confidence, "draw");
         this.lastGesture = g;
+        this.wasDrawActive = isDrawing;
         return;
       }
 
@@ -1070,6 +1071,7 @@ export class BrowserCursor {
       // from the user's gesture bindings, gated by hold-time + cooldown.
       this.tryFireStaticGesture(g, snap.confidence, "draw");
       this.lastGesture = g;
+      this.wasDrawActive = isDrawing;
       return;
     }
 
@@ -1096,12 +1098,14 @@ export class BrowserCursor {
       this.dispatchClick(target, x, y);
       this.lastClickAt = now;
       this.setLabel("CLICK");
-    } else if (transitionedTo("right_click") && now - this.lastRightClickAt > 320) {
+    } else if (transitionedTo("right_click") && now - this.lastRightClickAt > GestureSettingsStore.get().rightClickCooldownMs) {
       this.dispatchContextMenu(target, x, y);
       this.lastRightClickAt = now;
       this.setLabel("RIGHT");
     } else if ((g === "scroll_up" || g === "scroll_down") && now - this.lastScrollAt > 16) {
-      const delta = g === "scroll_up" ? -60 : 60;
+      const settings = GestureSettingsStore.get();
+      const baseDelta = g === "scroll_up" ? -settings.scrollStepPx : settings.scrollStepPx;
+      const delta = settings.invertScroll ? -baseDelta : baseDelta;
       this.dispatchWheel(target, x, y, delta);
       this.lastScrollAt = now;
       this.setLabel(g === "scroll_up" ? "SCROLL ↑" : "SCROLL ↓");
@@ -1133,6 +1137,8 @@ export class BrowserCursor {
   ): boolean {
     const now = performance.now();
     const settings = GestureSettingsStore.get();
+    if (surface === "pointer" && !settings.enablePointerStaticActions) return false;
+    if (surface === "draw" && !settings.enableDrawStaticActions) return false;
 
     if (!isConfigurable(g)) {
       this.poseHeld = null;
@@ -1210,6 +1216,42 @@ export class BrowserCursor {
         this.dispatchKey("ArrowLeft", 37);
         this.setLabel("← PREV");
         break;
+      case "home":
+        this.dispatchKey("Home", 36);
+        this.setLabel("HOME");
+        break;
+      case "end":
+        this.dispatchKey("End", 35);
+        this.setLabel("END");
+        break;
+      case "page_up":
+        this.dispatchKey("PageUp", 33);
+        this.setLabel("PAGE ↑");
+        break;
+      case "page_down":
+        this.dispatchKey("PageDown", 34);
+        this.setLabel("PAGE ↓");
+        break;
+      case "tab":
+        this.dispatchKey("Tab", 9);
+        this.setLabel("TAB");
+        break;
+      case "shift_tab":
+        this.dispatchKey("Tab", 9, { shift: true });
+        this.setLabel("SHIFT TAB");
+        break;
+      case "copy":
+        this.dispatchKey("c", 67, { ctrl: true });
+        this.setLabel("COPY");
+        break;
+      case "paste":
+        this.dispatchKey("v", 86, { ctrl: true });
+        this.setLabel("PASTE");
+        break;
+      case "cut":
+        this.dispatchKey("x", 88, { ctrl: true });
+        this.setLabel("CUT");
+        break;
       case "save":
         if (this.mode === "draw") this.saveAsPng();
         else this.dispatchKey("s", 83, { ctrl: true });
@@ -1218,6 +1260,41 @@ export class BrowserCursor {
       case "clear":
         if (this.mode === "draw") this.clearDrawing();
         this.setLabel("CLEAR");
+        break;
+      case "crop_selection":
+        if (this.mode === "draw") this.cropToSelection();
+        this.setLabel("CROP");
+        break;
+      case "commit_selection":
+        if (this.mode === "draw") this.commitSelection();
+        this.setLabel("COMMIT");
+        break;
+      case "switch_pointer":
+        this.setMode("pointer");
+        window.dispatchEvent(new CustomEvent("omnipoint:cursor-mode", { detail: "pointer" }));
+        this.setLabel("POINTER");
+        break;
+      case "switch_draw":
+        this.setMode("draw");
+        window.dispatchEvent(new CustomEvent("omnipoint:cursor-mode", { detail: "draw" }));
+        this.setLabel("DRAW");
+        break;
+      case "cursor_off":
+        this.setMode("off");
+        window.dispatchEvent(new CustomEvent("omnipoint:cursor-mode", { detail: "off" }));
+        break;
+      case "play_pause":
+        this.dispatchKey(" ", 32);
+        this.setLabel("PLAY");
+        break;
+      case "fullscreen":
+        this.dispatchKey("f", 70);
+        this.setLabel("FULL");
+        break;
+      case "screenshot":
+        if (this.mode === "draw") this.saveAsPng();
+        else this.dispatchKey("PrintScreen", 44);
+        this.setLabel("SHOT");
         break;
       case "escape":
         this.dispatchKey("Escape", 27);

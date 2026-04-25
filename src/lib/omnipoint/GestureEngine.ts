@@ -363,12 +363,19 @@ export class GestureEngine {
     );
     const tmPinch = tmPinchRaw / handScale;
 
-    const scrollMode = indexExt && middleExt && !ringExt && !pinkyExt;
+    const scrollMode = indexExt && middleExt && !thumbExt && !ringExt && !pinkyExt;
     const isFist = !indexExt && !middleExt && !ringExt && !pinkyExt && !thumbExt;
     const isOpenPalm = fingerCount === 5;
     const isThumbsUp = thumbExt && !indexExt && !middleExt && !ringExt && !pinkyExt;
     const isPinkyOnly = pinkyExt && !indexExt && !middleExt && !ringExt && !thumbExt;
     const isFourFingers = indexExt && middleExt && ringExt && pinkyExt && !thumbExt;
+    const isMiddleOnly = middleExt && !thumbExt && !indexExt && !ringExt && !pinkyExt;
+    const isRingOnly = ringExt && !thumbExt && !indexExt && !middleExt && !pinkyExt;
+    const isTwoFingerPoint = indexExt && ringExt && !thumbExt && !middleExt && !pinkyExt;
+    const isThreeFingers = indexExt && middleExt && ringExt && !thumbExt && !pinkyExt;
+    const isPeace = thumbExt && indexExt && middleExt && !ringExt && !pinkyExt;
+    const isRock = indexExt && pinkyExt && !middleExt && !ringExt;
+    const isPhoneCall = thumbExt && pinkyExt && !indexExt && !middleExt && !ringExt;
     const isPointing = indexExt && !middleExt && !ringExt && !pinkyExt;
     const isThreePinch = pinch < this.config.clickThreshold &&
                          tmPinch < this.config.clickThreshold * 1.4 &&
@@ -394,6 +401,34 @@ export class GestureEngine {
       this.lastScrollY = null;
     } else if (isFourFingers) {
       gesture = "four_fingers";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isPhoneCall) {
+      gesture = "phone_call";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isRock) {
+      gesture = "rock";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isThreeFingers) {
+      gesture = "three_fingers";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isPeace) {
+      gesture = "peace";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isTwoFingerPoint) {
+      gesture = "two_finger_point";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isMiddleOnly) {
+      gesture = "middle_only";
+      this.clickState = "IDLE";
+      this.lastScrollY = null;
+    } else if (isRingOnly) {
+      gesture = "ring_only";
       this.clickState = "IDLE";
       this.lastScrollY = null;
     } else if (isThreePinch) {
@@ -452,7 +487,11 @@ export class GestureEngine {
     const isStaticPose =
       gesture === "open_palm" || gesture === "thumbs_up" ||
       gesture === "pinky_only" || gesture === "four_fingers" ||
-      gesture === "fist" || gesture === "right_click";
+      gesture === "fist" || gesture === "middle_only" ||
+      gesture === "ring_only" || gesture === "two_finger_point" ||
+      gesture === "three_fingers" || gesture === "peace" ||
+      gesture === "rock" || gesture === "phone_call" ||
+      gesture === "right_click";
     let committed: GestureKind = gesture;
     if (isStaticPose) {
       if (gesture === this.gestureCandidate) {

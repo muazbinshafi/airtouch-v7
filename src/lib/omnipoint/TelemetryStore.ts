@@ -14,7 +14,14 @@ export type GestureKind =
   | "open_palm"
   | "fist"
   | "pinky_only"
-  | "four_fingers";
+  | "four_fingers"
+  | "middle_only"
+  | "ring_only"
+  | "two_finger_point"
+  | "three_fingers"
+  | "peace"
+  | "rock"
+  | "phone_call";
 export type BridgeProbe = "idle" | "probing" | "ok" | "failed";
 export type Handedness = "none" | "Left" | "Right";
 
