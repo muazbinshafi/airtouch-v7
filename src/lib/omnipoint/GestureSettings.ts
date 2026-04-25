@@ -256,7 +256,7 @@ export const defaultSettings: GestureSettings = {
   palmScope: "both",
   minConfidence: 0.55,
   accuracyBias: 1.0,
-  drawPinchThreshold: 0.55,
+  drawPinchThreshold: 0.72,
   scrollStepPx: 60,
   clickCooldownMs: 220,
   rightClickCooldownMs: 320,
