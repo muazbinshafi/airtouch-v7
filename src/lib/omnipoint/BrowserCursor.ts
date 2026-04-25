@@ -35,6 +35,11 @@ export class BrowserCursor {
   private dot: HTMLDivElement;
   private ring: HTMLDivElement;
   private label: HTMLDivElement;
+  private hand: SVGSVGElement;
+  private handBones: SVGLineElement[] = [];
+  private handJoints: SVGCircleElement[] = [];
+  private handIndexTip: SVGCircleElement | null = null;
+  private handThumbTip: SVGCircleElement | null = null;
   private drawCanvas: HTMLCanvasElement;
   private drawCtx: CanvasRenderingContext2D | null;
 
