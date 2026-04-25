@@ -962,7 +962,15 @@ export class BrowserCursor {
       // non-drawing gesture between click/drag frames.
       const settings = GestureSettingsStore.get();
       const isPinching = snap.pinchDistance > 0 && snap.pinchDistance < settings.drawPinchThreshold;
-      const isDrawing = g === "click" || g === "drag" || isPinching;
+      // POSE GATE: only put down ink when the user is actually pointing —
+      // index extended, middle + ring + pinky folded. This prevents a moving
+      // open hand or fist from drawing. Thumb is allowed in either state so
+      // the natural pinch (thumb+index) still counts.
+      const ext = snap.fingersExtended; // [thumb, index, middle, ring, pinky]
+      const indexOnlyPose =
+        snap.handPresent && ext[1] && !ext[2] && !ext[3] && !ext[4];
+      const isDrawing =
+        indexOnlyPose && (g === "click" || g === "drag" || g === "point" || isPinching);
       const tool = PaintStore.get().tool;
       const isShape = PaintStore.isShape(tool);
       const isFill = PaintStore.isFill(tool);
