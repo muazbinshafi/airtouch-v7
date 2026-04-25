@@ -234,6 +234,7 @@ export class GestureEngine {
         fingerCount: 0,
         pinchDistance: 0,
         gesture: "none",
+        landmarks: [],
       });
     }
 
