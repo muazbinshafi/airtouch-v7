@@ -487,7 +487,11 @@ export class GestureEngine {
     const isStaticPose =
       gesture === "open_palm" || gesture === "thumbs_up" ||
       gesture === "pinky_only" || gesture === "four_fingers" ||
-      gesture === "fist" || gesture === "right_click";
+      gesture === "fist" || gesture === "middle_only" ||
+      gesture === "ring_only" || gesture === "two_finger_point" ||
+      gesture === "three_fingers" || gesture === "peace" ||
+      gesture === "rock" || gesture === "phone_call" ||
+      gesture === "right_click";
     let committed: GestureKind = gesture;
     if (isStaticPose) {
       if (gesture === this.gestureCandidate) {
