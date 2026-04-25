@@ -28,6 +28,10 @@ export type Handedness = "none" | "Left" | "Right";
 // thumb, index, middle, ring, pinky
 export type FingerStates = [boolean, boolean, boolean, boolean, boolean];
 
+// 21 MediaPipe HandLandmarker points, normalized [0..1] in mirrored
+// (selfie) camera space. Empty array = no hand.
+export type HandLandmarks = { x: number; y: number; z: number }[];
+
 export interface TelemetrySnapshot {
   fps: number;
   inferenceMs: number;
@@ -51,6 +55,8 @@ export interface TelemetrySnapshot {
   fingersExtended: FingerStates;
   fingerCount: number;
   pinchDistance: number;
+  /** Mirrored, normalized 21-point hand skeleton for live overlay rendering. */
+  landmarks: HandLandmarks;
 }
 
 const initial: TelemetrySnapshot = {
@@ -75,6 +81,7 @@ const initial: TelemetrySnapshot = {
   fingersExtended: [false, false, false, false, false],
   fingerCount: 0,
   pinchDistance: 0,
+  landmarks: [],
 };
 
 let snapshot: TelemetrySnapshot = { ...initial };
