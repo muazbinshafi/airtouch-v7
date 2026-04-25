@@ -794,6 +794,8 @@ export class BrowserCursor {
     else if (gesture === "drag") { bg = "hsl(var(--primary) / 0.5)"; scale = 0.85; }
     else if (gesture === "fist") { bg = "hsl(var(--muted) / 0.4)"; scale = 1.1; }
     else if (gesture === "open_palm") { bg = "hsl(var(--accent) / 0.30)"; scale = 1.25; }
+    else if (gesture === "two_finger_point" || gesture === "peace") { bg = "hsl(var(--primary) / 0.25)"; scale = 1.15; }
+    else if (gesture === "rock") { bg = "hsl(var(--accent) / 0.28)"; scale = 1.2; }
     this.ring.style.backgroundColor = bg;
     this.ring.style.transform = `translate3d(0,0,0) scale(${scale})`;
   }
