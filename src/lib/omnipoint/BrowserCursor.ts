@@ -169,18 +169,18 @@ export class BrowserCursor {
 
     const SVG_NS = "http://www.w3.org/2000/svg";
     this.hand = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
-    this.hand.setAttribute("width", "260");
-    this.hand.setAttribute("height", "260");
-    this.hand.setAttribute("viewBox", "-130 -130 260 260");
+    this.hand.setAttribute("width", "560");
+    this.hand.setAttribute("height", "560");
+    this.hand.setAttribute("viewBox", "-280 -280 560 560");
     Object.assign(this.hand.style, {
       position: "absolute",
-      width: "260px",
-      height: "260px",
-      marginLeft: "-130px",
-      marginTop: "-130px",
+      width: "560px",
+      height: "560px",
+      marginLeft: "-280px",
+      marginTop: "-280px",
       pointerEvents: "none",
       overflow: "visible",
-      filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.55))",
+      filter: "drop-shadow(0 0 10px hsl(var(--primary) / 0.6))",
       transition: "opacity 140ms ease-out",
       opacity: "0",
       willChange: "transform, opacity",
@@ -197,14 +197,14 @@ export class BrowserCursor {
     for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
       const line = document.createElementNS(SVG_NS, "line") as SVGLineElement;
       line.setAttribute("stroke", "hsl(var(--primary))");
-      line.setAttribute("stroke-width", "2.5");
+      line.setAttribute("stroke-width", "5");
       line.setAttribute("stroke-linecap", "round");
       this.hand.appendChild(line);
       this.handBones.push(line);
     }
     for (let i = 0; i < 21; i++) {
       const c = document.createElementNS(SVG_NS, "circle") as SVGCircleElement;
-      c.setAttribute("r", "2.4");
+      c.setAttribute("r", "5");
       c.setAttribute("fill", "hsl(var(--primary))");
       this.hand.appendChild(c);
       this.handJoints.push(c);
@@ -212,14 +212,14 @@ export class BrowserCursor {
     // Highlight thumb tip (4) and index tip (8)
     this.handThumbTip = this.handJoints[4];
     this.handIndexTip = this.handJoints[8];
-    this.handThumbTip.setAttribute("r", "4");
+    this.handThumbTip.setAttribute("r", "8");
     this.handThumbTip.setAttribute("fill", "white");
     this.handThumbTip.setAttribute("stroke", "hsl(var(--primary))");
-    this.handThumbTip.setAttribute("stroke-width", "1.5");
-    this.handIndexTip.setAttribute("r", "4.5");
+    this.handThumbTip.setAttribute("stroke-width", "3");
+    this.handIndexTip.setAttribute("r", "9");
     this.handIndexTip.setAttribute("fill", "white");
     this.handIndexTip.setAttribute("stroke", "hsl(var(--primary))");
-    this.handIndexTip.setAttribute("stroke-width", "2");
+    this.handIndexTip.setAttribute("stroke-width", "3.5");
 
     this.root.appendChild(this.drawCanvas);
     this.root.appendChild(this.hand);
@@ -884,7 +884,7 @@ export class BrowserCursor {
     const refDx = lm[5].x - lm[0].x;
     const refDy = lm[5].y - lm[0].y;
     const refLen = Math.hypot(refDx, refDy) || 0.001;
-    const TARGET_PX = 70;
+    const TARGET_PX = 160;
     const scale = TARGET_PX / refLen;
 
     const ax = lm[8].x;
@@ -911,11 +911,11 @@ export class BrowserCursor {
     const pinch = snap.pinchDistance;
     const closing = pinch > 0 && pinch < 0.85;
     if (this.handIndexTip) {
-      this.handIndexTip.setAttribute("r", closing ? "5.5" : "4.5");
+      this.handIndexTip.setAttribute("r", closing ? "11" : "9");
       this.handIndexTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
     }
     if (this.handThumbTip) {
-      this.handThumbTip.setAttribute("r", closing ? "5" : "4");
+      this.handThumbTip.setAttribute("r", closing ? "10" : "8");
       this.handThumbTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
     }
     const ext = snap.fingersExtended;
