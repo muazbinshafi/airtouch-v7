@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import {
   Hand, MousePointer2, Zap, Shield, Activity, Sparkles, ArrowRight, Play, Github,
   Cpu, Eye, Gauge, Smartphone, Palette, Settings2, Wand2, Layers, Download,
+  Terminal, Apple, ExternalLink, Server, ShieldCheck,
 } from "lucide-react";
 import { ThemeSettings, ThemeToggleQuick } from "@/components/ThemeSettings";
 
@@ -41,6 +42,7 @@ const Index = () => {
       <PaintShowcase />
       <MobileSection />
       <Architecture />
+      <BridgeSection />
       <Quickstart />
       <CTA />
       <Footer />
@@ -66,7 +68,7 @@ function Header() {
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#gestures" className="hover:text-foreground transition-colors">Gestures</a>
           <Link to="/guide" className="hover:text-foreground transition-colors">Guide</Link>
-          <Link to="/bridge" className="hover:text-foreground transition-colors">Bridge</Link>
+          <a href="#bridge" className="hover:text-foreground transition-colors">Bridge</a>
           <a href="#architecture" className="hover:text-foreground transition-colors">How it works</a>
           <a href="#quickstart" className="hover:text-foreground transition-colors">Docs</a>
         </nav>
