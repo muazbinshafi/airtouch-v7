@@ -363,7 +363,7 @@ export class GestureEngine {
     );
     const tmPinch = tmPinchRaw / handScale;
 
-    const scrollMode = indexExt && middleExt && !ringExt && !pinkyExt;
+    const scrollMode = indexExt && middleExt && !thumbExt && !ringExt && !pinkyExt;
     const isFist = !indexExt && !middleExt && !ringExt && !pinkyExt && !thumbExt;
     const isOpenPalm = fingerCount === 5;
     const isThumbsUp = thumbExt && !indexExt && !middleExt && !ringExt && !pinkyExt;
@@ -371,9 +371,9 @@ export class GestureEngine {
     const isFourFingers = indexExt && middleExt && ringExt && pinkyExt && !thumbExt;
     const isMiddleOnly = middleExt && !thumbExt && !indexExt && !ringExt && !pinkyExt;
     const isRingOnly = ringExt && !thumbExt && !indexExt && !middleExt && !pinkyExt;
-    const isTwoFingerPoint = indexExt && middleExt && !thumbExt && !ringExt && !pinkyExt;
+    const isTwoFingerPoint = indexExt && ringExt && !thumbExt && !middleExt && !pinkyExt;
     const isThreeFingers = indexExt && middleExt && ringExt && !thumbExt && !pinkyExt;
-    const isPeace = indexExt && middleExt && !ringExt && !pinkyExt;
+    const isPeace = thumbExt && indexExt && middleExt && !ringExt && !pinkyExt;
     const isRock = indexExt && pinkyExt && !middleExt && !ringExt;
     const isPhoneCall = thumbExt && pinkyExt && !indexExt && !middleExt && !ringExt;
     const isPointing = indexExt && !middleExt && !ringExt && !pinkyExt;
