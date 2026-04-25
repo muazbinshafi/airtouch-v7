@@ -394,6 +394,30 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className={`h-8 px-2 border flex items-center justify-between gap-2 cursor-pointer ${
+      checked ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+    }`}>
+      <span className="font-mono text-[9px] tracking-[0.18em] truncate">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-primary"
+      />
+    </label>
+  );
+}
+
 function ActionPicker({
   label,
   value,
