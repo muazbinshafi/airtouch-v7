@@ -911,11 +911,11 @@ export class BrowserCursor {
     const pinch = snap.pinchDistance;
     const closing = pinch > 0 && pinch < 0.85;
     if (this.handIndexTip) {
-      this.handIndexTip.setAttribute("r", closing ? "5.5" : "4.5");
+      this.handIndexTip.setAttribute("r", closing ? "11" : "9");
       this.handIndexTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
     }
     if (this.handThumbTip) {
-      this.handThumbTip.setAttribute("r", closing ? "5" : "4");
+      this.handThumbTip.setAttribute("r", closing ? "10" : "8");
       this.handThumbTip.setAttribute("fill", closing ? "hsl(var(--primary))" : "white");
     }
     const ext = snap.fingersExtended;
