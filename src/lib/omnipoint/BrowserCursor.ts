@@ -1215,6 +1215,42 @@ export class BrowserCursor {
         this.dispatchKey("ArrowLeft", 37);
         this.setLabel("← PREV");
         break;
+      case "home":
+        this.dispatchKey("Home", 36);
+        this.setLabel("HOME");
+        break;
+      case "end":
+        this.dispatchKey("End", 35);
+        this.setLabel("END");
+        break;
+      case "page_up":
+        this.dispatchKey("PageUp", 33);
+        this.setLabel("PAGE ↑");
+        break;
+      case "page_down":
+        this.dispatchKey("PageDown", 34);
+        this.setLabel("PAGE ↓");
+        break;
+      case "tab":
+        this.dispatchKey("Tab", 9);
+        this.setLabel("TAB");
+        break;
+      case "shift_tab":
+        this.dispatchKey("Tab", 9, { shift: true });
+        this.setLabel("SHIFT TAB");
+        break;
+      case "copy":
+        this.dispatchKey("c", 67, { ctrl: true });
+        this.setLabel("COPY");
+        break;
+      case "paste":
+        this.dispatchKey("v", 86, { ctrl: true });
+        this.setLabel("PASTE");
+        break;
+      case "cut":
+        this.dispatchKey("x", 88, { ctrl: true });
+        this.setLabel("CUT");
+        break;
       case "save":
         if (this.mode === "draw") this.saveAsPng();
         else this.dispatchKey("s", 83, { ctrl: true });
@@ -1223,6 +1259,38 @@ export class BrowserCursor {
       case "clear":
         if (this.mode === "draw") this.clearDrawing();
         this.setLabel("CLEAR");
+        break;
+      case "crop_selection":
+        if (this.mode === "draw") this.cropToSelection();
+        this.setLabel("CROP");
+        break;
+      case "commit_selection":
+        if (this.mode === "draw") this.commitSelection();
+        this.setLabel("COMMIT");
+        break;
+      case "switch_pointer":
+        this.setMode("pointer");
+        this.setLabel("POINTER");
+        break;
+      case "switch_draw":
+        this.setMode("draw");
+        this.setLabel("DRAW");
+        break;
+      case "cursor_off":
+        this.setMode("off");
+        break;
+      case "play_pause":
+        this.dispatchKey(" ", 32);
+        this.setLabel("PLAY");
+        break;
+      case "fullscreen":
+        this.dispatchKey("f", 70);
+        this.setLabel("FULL");
+        break;
+      case "screenshot":
+        if (this.mode === "draw") this.saveAsPng();
+        else this.dispatchKey("PrintScreen", 44);
+        this.setLabel("SHOT");
         break;
       case "escape":
         this.dispatchKey("Escape", 27);
