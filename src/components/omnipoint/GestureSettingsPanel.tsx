@@ -309,7 +309,8 @@ export function GestureSettingsPanel() {
                 Remap each pose. Hold-time prevents accidental fires.
               </p>
               {GESTURES.map((g) => {
-                const b = settings.bindings[g];
+                const b = settings.bindings[g] ?? GestureSettingsStore.get().bindings[g];
+                if (!b) return null;
                 return (
                   <div
                     key={g}
