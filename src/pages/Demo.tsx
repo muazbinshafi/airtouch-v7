@@ -12,6 +12,8 @@ import { TelemetryStore } from "@/lib/omnipoint/TelemetryStore";
 import { ThemeSettings } from "@/components/ThemeSettings";
 import { PaintToolbar } from "@/components/omnipoint/PaintToolbar";
 import { GestureSettingsPanel } from "@/components/omnipoint/GestureSettingsPanel";
+import { RenderModeToggle } from "@/components/omnipoint/RenderModeToggle";
+import { Hand3D } from "@/components/omnipoint/Hand3D";
 import { useBrowserCursor } from "@/hooks/useBrowserCursor";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Gauge, Wand2 } from "lucide-react";
@@ -255,6 +257,7 @@ const Demo = () => {
   return (
       <main className="h-[100dvh] w-screen flex flex-col bg-background text-foreground overflow-hidden">
         <h1 className="sr-only">OmniPoint HCI — Live Sensor</h1>
+        <Hand3D />
         {!showInit && <StatusBar onEmergencyToggle={handleEmergencyToggle} />}
         {!showInit && (
           <ControlModeBar
@@ -295,6 +298,7 @@ const Demo = () => {
               </SheetContent>
             </Sheet>
             <GestureSettingsPanel />
+            <RenderModeToggle />
             <button
               onClick={() => setTourOpen(true)}
               title="Show gesture guide"

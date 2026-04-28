@@ -55,8 +55,18 @@ export interface TelemetrySnapshot {
   fingersExtended: FingerStates;
   fingerCount: number;
   pinchDistance: number;
-  /** Mirrored, normalized 21-point hand skeleton for live overlay rendering. */
+  /** Mirrored, normalized 21-point hand skeleton for live overlay rendering (primary hand). */
   landmarks: HandLandmarks;
+  // ---- Secondary hand (when two-hand tracking is active) ----
+  handPresentB: boolean;
+  handednessB: Handedness;
+  fingersExtendedB: FingerStates;
+  fingerCountB: number;
+  pinchDistanceB: number;
+  cursorBX: number;
+  cursorBY: number;
+  gestureB: GestureKind;
+  landmarksB: HandLandmarks;
 }
 
 const initial: TelemetrySnapshot = {
@@ -82,6 +92,15 @@ const initial: TelemetrySnapshot = {
   fingerCount: 0,
   pinchDistance: 0,
   landmarks: [],
+  handPresentB: false,
+  handednessB: "none",
+  fingersExtendedB: [false, false, false, false, false],
+  fingerCountB: 0,
+  pinchDistanceB: 0,
+  cursorBX: 0.5,
+  cursorBY: 0.5,
+  gestureB: "none",
+  landmarksB: [],
 };
 
 let snapshot: TelemetrySnapshot = { ...initial };

@@ -7,6 +7,7 @@
 
 import { TelemetryStore, type GestureKind } from "./TelemetryStore";
 import { PaintStore, PaintHistory } from "./PaintStore";
+import { RenderModeStore } from "./RenderModeStore";
 import {
   GestureSettingsStore,
   isConfigurable,
@@ -40,6 +41,11 @@ export class BrowserCursor {
   private handJoints: SVGCircleElement[] = [];
   private handIndexTip: SVGCircleElement | null = null;
   private handThumbTip: SVGCircleElement | null = null;
+  // Secondary hand overlay (independent skeleton + cursor visual)
+  private handB: SVGSVGElement;
+  private handBBones: SVGLineElement[] = [];
+  private handBJoints: SVGCircleElement[] = [];
+  private cursorB: HTMLDivElement;
   private drawCanvas: HTMLCanvasElement;
   private drawCtx: CanvasRenderingContext2D | null;
 
@@ -221,8 +227,60 @@ export class BrowserCursor {
     this.handIndexTip.setAttribute("stroke", "hsl(var(--primary))");
     this.handIndexTip.setAttribute("stroke-width", "3.5");
 
+    // ---- Secondary hand skeleton (uses --accent for visual distinction) ----
+    this.handB = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
+    this.handB.setAttribute("width", "560");
+    this.handB.setAttribute("height", "560");
+    this.handB.setAttribute("viewBox", "-280 -280 560 560");
+    Object.assign(this.handB.style, {
+      position: "absolute",
+      width: "560px",
+      height: "560px",
+      marginLeft: "-280px",
+      marginTop: "-280px",
+      pointerEvents: "none",
+      overflow: "visible",
+      filter: "drop-shadow(0 0 10px hsl(var(--accent) / 0.6))",
+      transition: "opacity 140ms ease-out",
+      opacity: "0",
+      willChange: "transform, opacity",
+    } as CSSStyleDeclaration);
+    for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
+      const line = document.createElementNS(SVG_NS, "line") as SVGLineElement;
+      line.setAttribute("stroke", "hsl(var(--accent))");
+      line.setAttribute("stroke-width", "5");
+      line.setAttribute("stroke-linecap", "round");
+      this.handB.appendChild(line);
+      this.handBBones.push(line);
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = document.createElementNS(SVG_NS, "circle") as SVGCircleElement;
+      c.setAttribute("r", "5");
+      c.setAttribute("fill", "hsl(var(--accent))");
+      this.handB.appendChild(c);
+      this.handBJoints.push(c);
+    }
+
+    // Secondary cursor (visual hover ring for hand B)
+    this.cursorB = document.createElement("div");
+    Object.assign(this.cursorB.style, {
+      position: "absolute",
+      width: "28px",
+      height: "28px",
+      marginLeft: "-14px",
+      marginTop: "-14px",
+      borderRadius: "50%",
+      border: "2px solid hsl(var(--accent))",
+      background: "hsl(var(--accent) / 0.15)",
+      pointerEvents: "none",
+      opacity: "0",
+      transition: "opacity 140ms ease-out, transform 80ms ease-out",
+    } as CSSStyleDeclaration);
+
     this.root.appendChild(this.drawCanvas);
     this.root.appendChild(this.hand);
+    this.root.appendChild(this.handB);
+    this.root.appendChild(this.cursorB);
     this.root.appendChild(this.ring);
     this.root.appendChild(this.dot);
     this.root.appendChild(this.label);
@@ -869,15 +927,15 @@ export class BrowserCursor {
   }
 
   /**
-   * Render the live MediaPipe hand skeleton centered on the cursor.
-   * Landmark 8 (index fingertip) is anchored at the cursor origin so the
-   * "tip" of the user's index finger always points at the click location.
-   * Auto-scaled by wrist→index-MCP so on-screen size is camera-distance
-   * independent.
+   * Render the live MediaPipe hand skeleton anchored at the centroid of FOUR
+   * landmarks: wrist (0) + index-MCP (5) + ring-MCP (13) + middle-MCP (9).
+   * This puts the visual pivot in the palm so the skeleton sits *around* the
+   * cursor instead of dangling from the index fingertip.
+   * Skipped entirely when the user is in 3D render mode (Hand3D handles it).
    */
   private updateHandSkeleton(snap: ReturnType<typeof TelemetryStore.get>) {
     const lm = snap.landmarks;
-    if (!snap.handPresent || lm.length < 21) {
+    if (RenderModeStore.get() === "3d" || !snap.handPresent || lm.length < 21) {
       this.hand.style.opacity = "0";
       return;
     }
@@ -887,8 +945,12 @@ export class BrowserCursor {
     const TARGET_PX = 160;
     const scale = TARGET_PX / refLen;
 
-    const ax = lm[8].x;
-    const ay = lm[8].y;
+    // 4-anchor centroid: wrist + index/middle/ring MCPs
+    const ANCHORS = [0, 5, 9, 13];
+    let ax = 0, ay = 0;
+    for (const i of ANCHORS) { ax += lm[i].x; ay += lm[i].y; }
+    ax /= ANCHORS.length;
+    ay /= ANCHORS.length;
     const pts = lm.map((p) => ({
       x: (p.x - ax) * scale,
       y: (p.y - ay) * scale,
@@ -933,6 +995,62 @@ export class BrowserCursor {
     this.hand.style.opacity = "1";
   }
 
+  /**
+   * Render the secondary hand skeleton (when two hands are detected).
+   * Same 4-anchor centroid pivot, drawn in --accent for visual contrast.
+   */
+  private updateHandSkeletonB(snap: ReturnType<typeof TelemetryStore.get>) {
+    const lm = snap.landmarksB;
+    if (RenderModeStore.get() === "3d" || !snap.handPresentB || lm.length < 21) {
+      this.handB.style.opacity = "0";
+      this.cursorB.style.opacity = "0";
+      return;
+    }
+    const refLen = Math.hypot(lm[5].x - lm[0].x, lm[5].y - lm[0].y) || 0.001;
+    const TARGET_PX = 160;
+    const scale = TARGET_PX / refLen;
+    const ANCHORS = [0, 5, 9, 13];
+    let ax = 0, ay = 0;
+    for (const i of ANCHORS) { ax += lm[i].x; ay += lm[i].y; }
+    ax /= ANCHORS.length;
+    ay /= ANCHORS.length;
+    const pts = lm.map((p) => ({ x: (p.x - ax) * scale, y: (p.y - ay) * scale }));
+
+    for (let i = 0; i < this._handConnections.length; i++) {
+      const [a, b] = this._handConnections[i];
+      const line = this.handBBones[i];
+      line.setAttribute("x1", pts[a].x.toFixed(2));
+      line.setAttribute("y1", pts[a].y.toFixed(2));
+      line.setAttribute("x2", pts[b].x.toFixed(2));
+      line.setAttribute("y2", pts[b].y.toFixed(2));
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = this.handBJoints[i];
+      c.setAttribute("cx", pts[i].x.toFixed(2));
+      c.setAttribute("cy", pts[i].y.toFixed(2));
+    }
+    const ext = snap.fingersExtendedB;
+    const fingerBoneRanges: [number, number, number][] = [
+      [0, 3, 0], [4, 7, 1], [8, 11, 2], [12, 15, 3], [16, 19, 4],
+    ];
+    for (const [s, e, fIdx] of fingerBoneRanges) {
+      for (let i = s; i <= e; i++) {
+        this.handBBones[i].setAttribute("stroke-opacity", ext[fIdx] ? "1" : "0.35");
+      }
+    }
+    this.handB.style.opacity = "1";
+
+    // Secondary cursor visual at the second hand's index tip on screen
+    const { x: bx, y: by } = this.resolveScreenXY(snap.cursorBX, snap.cursorBY);
+    this.handB.style.left = `${bx}px`;
+    this.handB.style.top = `${by}px`;
+    this.cursorB.style.left = `${bx}px`;
+    this.cursorB.style.top = `${by}px`;
+    const closing = snap.pinchDistanceB > 0 && snap.pinchDistanceB < 0.85;
+    this.cursorB.style.opacity = "1";
+    this.cursorB.style.transform = `scale(${closing ? 0.7 : 1})`;
+  }
+
   private loop = () => {
     this.rafId = requestAnimationFrame(this.loop);
     if (this.mode === "off") return;
@@ -951,6 +1069,7 @@ export class BrowserCursor {
     this.hand.style.left = `${x}px`;
     this.hand.style.top = `${y}px`;
     this.updateHandSkeleton(snap);
+    this.updateHandSkeletonB(snap);
 
     const g = snap.gesture;
     this.setRingState(g);
