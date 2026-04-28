@@ -600,6 +600,68 @@ export class GestureEngine {
     this.emitMotion(committed, pressure);
   }
 
+  /**
+   * Lightweight per-frame summary of a *second* detected hand.
+   * Does NOT drive clicks or HID events — it only feeds the overlay (live
+   * skeleton + secondary cursor preview) and the 3D renderer.
+   */
+  private processSecondaryHand(result: HandLandmarkerResult) {
+    const lm = result.landmarks[1];
+    if (!lm || lm.length < 21) return;
+
+    const handedness =
+      (result.handedness?.[1]?.[0]?.categoryName as "Left" | "Right" | undefined) ?? "none";
+
+    // Finger extension (same heuristic as primary): tip.y < pip.y means extended
+    // for the 4 long fingers in normalized image space; thumb compares x to ip.
+    const tipIdx = [4, 8, 12, 16, 20];
+    const pipIdx = [3, 6, 10, 14, 18];
+    const ext: [boolean, boolean, boolean, boolean, boolean] = [false, false, false, false, false];
+    for (let i = 0; i < 5; i++) {
+      if (i === 0) {
+        // thumb: handedness-aware horizontal test
+        const tip = lm[tipIdx[i]];
+        const ip = lm[pipIdx[i]];
+        ext[i] = handedness === "Left" ? tip.x > ip.x : tip.x < ip.x;
+      } else {
+        ext[i] = lm[tipIdx[i]].y < lm[pipIdx[i]].y;
+      }
+    }
+    const fingerCount = ext.filter(Boolean).length;
+
+    // Pinch ratio (same shape as primary)
+    const tt = lm[4], it = lm[8];
+    const pinchRaw = Math.hypot(tt.x - it.x, tt.y - it.y, (tt.z || 0) - (it.z || 0));
+    const handRef = Math.hypot(lm[5].x - lm[0].x, lm[5].y - lm[0].y) || 1;
+    const pinchRatio = pinchRaw / handRef;
+
+    // Mirror to match selfie view (same as primary)
+    const mirrored = lm.map((p) => ({ x: 1 - p.x, y: p.y, z: p.z }));
+
+    // Secondary cursor = mirrored index tip in normalized space.
+    const cursorBX = 1 - it.x;
+    const cursorBY = it.y;
+
+    // Lightweight gesture label for the secondary hand: report point/pinch/palm/fist.
+    let gestureB: GestureKind = "none";
+    if (pinchRatio < 0.55) gestureB = "click";
+    else if (fingerCount === 0) gestureB = "fist";
+    else if (fingerCount >= 4) gestureB = "open_palm";
+    else if (ext[1] && !ext[2] && !ext[3] && !ext[4]) gestureB = "point";
+
+    TelemetryStore.set({
+      handPresentB: true,
+      handednessB: handedness,
+      fingersExtendedB: ext,
+      fingerCountB: fingerCount,
+      pinchDistanceB: pinchRatio,
+      cursorBX,
+      cursorBY,
+      gestureB,
+      landmarksB: mirrored,
+    });
+  }
+
   private emitMotion(gesture: GestureKind, pressure: number) {
     this.bridge.send({
       event: "motion",
