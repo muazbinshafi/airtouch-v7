@@ -7,6 +7,7 @@
 
 import { TelemetryStore, type GestureKind } from "./TelemetryStore";
 import { PaintStore, PaintHistory } from "./PaintStore";
+import { RenderModeStore } from "./RenderModeStore";
 import {
   GestureSettingsStore,
   isConfigurable,
@@ -40,6 +41,11 @@ export class BrowserCursor {
   private handJoints: SVGCircleElement[] = [];
   private handIndexTip: SVGCircleElement | null = null;
   private handThumbTip: SVGCircleElement | null = null;
+  // Secondary hand overlay (independent skeleton + cursor visual)
+  private handB: SVGSVGElement;
+  private handBBones: SVGLineElement[] = [];
+  private handBJoints: SVGCircleElement[] = [];
+  private cursorB: HTMLDivElement;
   private drawCanvas: HTMLCanvasElement;
   private drawCtx: CanvasRenderingContext2D | null;
 
