@@ -257,6 +257,7 @@ const Demo = () => {
   return (
       <main className="h-[100dvh] w-screen flex flex-col bg-background text-foreground overflow-hidden">
         <h1 className="sr-only">OmniPoint HCI — Live Sensor</h1>
+        <Hand3D />
         {!showInit && <StatusBar onEmergencyToggle={handleEmergencyToggle} />}
         {!showInit && (
           <ControlModeBar
