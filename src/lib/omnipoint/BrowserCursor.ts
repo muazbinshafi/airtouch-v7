@@ -227,8 +227,60 @@ export class BrowserCursor {
     this.handIndexTip.setAttribute("stroke", "hsl(var(--primary))");
     this.handIndexTip.setAttribute("stroke-width", "3.5");
 
+    // ---- Secondary hand skeleton (uses --accent for visual distinction) ----
+    this.handB = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
+    this.handB.setAttribute("width", "560");
+    this.handB.setAttribute("height", "560");
+    this.handB.setAttribute("viewBox", "-280 -280 560 560");
+    Object.assign(this.handB.style, {
+      position: "absolute",
+      width: "560px",
+      height: "560px",
+      marginLeft: "-280px",
+      marginTop: "-280px",
+      pointerEvents: "none",
+      overflow: "visible",
+      filter: "drop-shadow(0 0 10px hsl(var(--accent) / 0.6))",
+      transition: "opacity 140ms ease-out",
+      opacity: "0",
+      willChange: "transform, opacity",
+    } as CSSStyleDeclaration);
+    for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
+      const line = document.createElementNS(SVG_NS, "line") as SVGLineElement;
+      line.setAttribute("stroke", "hsl(var(--accent))");
+      line.setAttribute("stroke-width", "5");
+      line.setAttribute("stroke-linecap", "round");
+      this.handB.appendChild(line);
+      this.handBBones.push(line);
+    }
+    for (let i = 0; i < 21; i++) {
+      const c = document.createElementNS(SVG_NS, "circle") as SVGCircleElement;
+      c.setAttribute("r", "5");
+      c.setAttribute("fill", "hsl(var(--accent))");
+      this.handB.appendChild(c);
+      this.handBJoints.push(c);
+    }
+
+    // Secondary cursor (visual hover ring for hand B)
+    this.cursorB = document.createElement("div");
+    Object.assign(this.cursorB.style, {
+      position: "absolute",
+      width: "28px",
+      height: "28px",
+      marginLeft: "-14px",
+      marginTop: "-14px",
+      borderRadius: "50%",
+      border: "2px solid hsl(var(--accent))",
+      background: "hsl(var(--accent) / 0.15)",
+      pointerEvents: "none",
+      opacity: "0",
+      transition: "opacity 140ms ease-out, transform 80ms ease-out",
+    } as CSSStyleDeclaration);
+
     this.root.appendChild(this.drawCanvas);
     this.root.appendChild(this.hand);
+    this.root.appendChild(this.handB);
+    this.root.appendChild(this.cursorB);
     this.root.appendChild(this.ring);
     this.root.appendChild(this.dot);
     this.root.appendChild(this.label);
