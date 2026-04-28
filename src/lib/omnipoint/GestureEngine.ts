@@ -133,7 +133,7 @@ export class GestureEngine {
     );
     onProgress?.("Loading HandLandmarker model...");
     const baseOpts = {
-      numHands: 1,
+      numHands: 2,
       runningMode: "VIDEO" as const,
       // Higher thresholds reject low-confidence frames → fewer phantom poses.
       minHandDetectionConfidence: 0.7,
