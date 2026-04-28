@@ -238,6 +238,22 @@ export class GestureEngine {
       });
     }
 
+    // ---- Secondary hand: lightweight summary (no click/drag, just overlay) ----
+    if (result.landmarks.length > 1) {
+      this.processSecondaryHand(result);
+    } else {
+      TelemetryStore.set({
+        handPresentB: false,
+        handednessB: "none",
+        fingersExtendedB: [false, false, false, false, false],
+        fingerCountB: 0,
+        pinchDistanceB: 0,
+        gestureB: "none",
+        landmarksB: [],
+      });
+    }
+
+
     const sensorLost = confidence < 0.5;
     TelemetryStore.set({
       fps: this.frameTimes.length,
